@@ -29,7 +29,7 @@ public class ImageViewer extends Activity {
         iv.setImageBitmap(b);
     }
 
-    public synchronized static int GetExifOrientation(String path)
+    public static synchronized int GetExifOrientation(String path)
     {
         int degree = 0;
         ExifInterface exif = null;
@@ -60,7 +60,7 @@ public class ImageViewer extends Activity {
         return degree;
     }
 
-    public synchronized static Bitmap GetRotatedBitmap(Bitmap bitmap, int degree)
+    public static synchronized Bitmap GetRotatedBitmap(Bitmap bitmap, int degree)
     {
         if(degree != 0 && bitmap != null){
             Matrix m = new Matrix();
@@ -79,7 +79,7 @@ public class ImageViewer extends Activity {
         return bitmap;
     }
 
-    public synchronized static Bitmap LoadBitmap(String path)
+    public synchronized Bitmap LoadBitmap(String path)
     {
         try{
             File file = new File(path);
@@ -107,7 +107,7 @@ public class ImageViewer extends Activity {
             return null;
         }
     }
-    public synchronized static Bitmap LoadThumbnail(String path, String origin_path)
+    public static synchronized Bitmap LoadThumbnail(String path, String origin_path)
     {
         Bitmap bitmap = BitmapFactory.decodeFile(path);
         int degree = GetExifOrientation(origin_path);

@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-
     <TextView
         android:paddingStart="8dp"
         android:textSize="18sp"
@@ -14,7 +13,7 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/albumart"
+        android:layout_toEndOf="@+id/albumart"
         android:text="Title" />
 
     <TextView
@@ -36,8 +35,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-
         app:srcCompat="@android:drawable/ic_menu_report_image" />
+
 </RelativeLayout>
 
 

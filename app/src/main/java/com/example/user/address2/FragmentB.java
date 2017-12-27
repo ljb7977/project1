@@ -157,8 +157,8 @@ public class FragmentB extends Fragment {
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 projection,
                 selection,
-                new String[] {"%DCIM%"},
-                null);
+                new String[] {"%Camera%"},
+                MediaStore.Images.Media.DATE_TAKEN+" desc");
 
         ArrayList<Photo> result = new ArrayList<>();
         assert imageCursor != null;
