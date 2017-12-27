@@ -111,6 +111,13 @@ public class MusicPlayer extends AppCompatActivity {
         });
     }
 
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(mp.isPlaying()){
+            mp.stop();
+        }
+    }
+
     class SeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
 
         public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
