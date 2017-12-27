@@ -27,6 +27,8 @@ public class MusicPlayer extends AppCompatActivity {
     Thread seekbarthread = null;
     TextView totaltime;
     TextView currenttime;
+    String path;
+    boolean repeat, ispaused;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +36,7 @@ public class MusicPlayer extends AppCompatActivity {
         setContentView(R.layout.activity_music_player);
         Intent intent = getIntent();
 
-        String path = intent.getStringExtra("path");
+        path = intent.getStringExtra("path");
         String albumArtPath = intent.getStringExtra("albumart");
 
         playbtn = findViewById(R.id.button);
@@ -60,19 +62,51 @@ public class MusicPlayer extends AppCompatActivity {
         albumArt.setImageBitmap(b);
 
         mp = new MediaPlayer();
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+            public void onCompletion(MediaPlayer m){
+                if(!repeat){
+                    playbtn.setText("재생");
+                    seekbar = null;
+                }
+
+            }
+        });
         try {
             mp.setDataSource(path);
             mp.prepare();
         } catch(Exception e){
             e.printStackTrace();
         }
+        //mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
         mp.setLooping(false);
+        repeat = false;
+        ispaused = false;
 
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+            @Override
+            public void onCompletion(MediaPlayer m){
+               if(!repeat){
+                   mp.stop();
+                   try{
+                       mp.prepare();
+                   }catch(IllegalStateException e){
+                       e.printStackTrace();
+                   }catch(IOException e){
+                       e.printStackTrace();
+                   }
+                   mp.seekTo(0);
+
+                   playbtn.setText("재생");
+               }
+
+            }
+        });
         int duration = mp.getDuration();
         seekbar.setMax(duration);
 
         totaltime.setText(strtime(duration));
         currenttime.setText("0:00");
+        //preparesong(path);
         seekbar.setOnSeekBarChangeListener(new SeekBarChangeListener());
 
         playbtn.setOnClickListener(new View.OnClickListener(){
@@ -80,10 +114,11 @@ public class MusicPlayer extends AppCompatActivity {
             public void onClick(View v){
                 if(mp.isPlaying()){
                     mp.pause();
-
+                    ispaused = true;
                     playbtn.setText("재생");
                 }
                 else{
+                    ispaused = false;
                     mp.start();
                     if(seekbarthread==null){
                         playbtn.setText("일시정지");
@@ -97,7 +132,7 @@ public class MusicPlayer extends AppCompatActivity {
         stopbtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                if(mp.isPlaying() || mp.getCurrentPosition()>0){
+                if(mp.isPlaying() || ispaused){
                     mp.stop();
                     try{
                         mp.prepare();
@@ -118,15 +153,35 @@ public class MusicPlayer extends AppCompatActivity {
             public void onClick(View v){
                 if(mp.isLooping()){
                     mp.setLooping(false);
+                    repeat = false;
                     repeatbtn.setText("반복재생");
                 }
                 else{
                     mp.setLooping(true);
+                    repeat = true;
                     repeatbtn.setText("한번재생");
                 }
 
             }
         });
+    }
+
+    public void preparesong(String path){
+        mp.reset();
+        /*try {
+            mp.setDataSource(path);
+            mp.prepare();
+        } catch(Exception e){
+            e.printStackTrace();
+        }*/
+        mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
+        mp.setLooping(false);
+
+        int duration = mp.getDuration();
+        seekbar.setMax(duration);
+
+        totaltime.setText(strtime(duration));
+        currenttime.setText("0:00");
     }
 
     public void onBackPressed() {
@@ -151,8 +206,8 @@ public class MusicPlayer extends AppCompatActivity {
         public void onStopTrackingTouch(SeekBar arg0) {
 
         }
-
     }
+
 
     private class seekbarThread extends Thread{
         private static final String TAG = "seekbarThread";
@@ -162,7 +217,7 @@ public class MusicPlayer extends AppCompatActivity {
         }
         public void run(){
             while(true){
-                if(mp.isPlaying()){
+                if(mp.isPlaying() || ispaused){
                     try{
                         Thread.sleep(1000);
                     }catch(InterruptedException e){
@@ -171,9 +226,9 @@ public class MusicPlayer extends AppCompatActivity {
                     seekbar.setProgress(mp.getCurrentPosition());
 
                 }
-                else if(mp.getCurrentPosition()>1){
+                /*else if(mp.getCurrentPosition()>1){
                     continue;
-                }
+                }*/
                 else{
                     break;
                 }
