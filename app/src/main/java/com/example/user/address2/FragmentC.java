@@ -115,11 +115,11 @@ public class FragmentC extends Fragment {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id){
-                //need to implement
                 Song s = songs.get(position);
                 String path = s.data;
                 Intent intent = new Intent(getActivity(), MusicPlayer.class);
                 intent.putExtra("path", path);
+                intent.putExtra("albumart", s.albumCover);
                 startActivity(intent);
             }
         });
