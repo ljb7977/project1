@@ -18,7 +18,6 @@ public class TabPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-
         // Returning the current tabs
         switch (position) {
             case 0:

@@ -22,7 +22,7 @@ public class FragmentA extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab_fragment1, container, false);
 
-        ListView listview = (ListView) view.findViewById(R.id.listview);
+        ListView listview = view.findViewById(R.id.listview);
         final ListViewAdapter adapter = new ListViewAdapter();
 
         listview.setAdapter(adapter);

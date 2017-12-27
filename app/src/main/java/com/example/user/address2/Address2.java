@@ -17,9 +17,9 @@ public class Address2 extends AppCompatActivity {
         String number = intent.getStringExtra("number");
         String email = intent.getStringExtra("email");
 
-        TextView nameTextView = (TextView)findViewById(R.id.textView1);
-        TextView numberTextView = (TextView)findViewById(R.id.textView2);
-        TextView emailTextView = (TextView)findViewById(R.id.textView3);
+        TextView nameTextView = findViewById(R.id.textView1);
+        TextView numberTextView = findViewById(R.id.textView2);
+        TextView emailTextView = findViewById(R.id.textView3);
 
         nameTextView.setText(name);
         numberTextView.setText(number);
