@@ -1,5 +1,6 @@
 package com.example.user.address2;
 
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +29,10 @@ public class MusicPlayer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_player);
+        Intent intent = getIntent();
+
+        String path = intent.getStringExtra("path");
+
         playbtn = (Button) findViewById(R.id.button);
         stopbtn = (Button) findViewById(R.id.button1);
         repeatbtn = (Button) findViewById(R.id.button2);
@@ -38,7 +43,7 @@ public class MusicPlayer extends AppCompatActivity {
         //mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
         mp = new MediaPlayer();
         try{
-            mp.setDataSource("sdcard/Music/konan.mp3");
+            mp.setDataSource(path);
             mp.prepare();
         }catch(Exception e){
 

@@ -3,6 +3,7 @@ package com.example.user.address2;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -115,7 +116,11 @@ public class FragmentC extends Fragment {
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id){
                 //need to implement
-
+                Song s = songs.get(position);
+                String path = s.data;
+                Intent intent = new Intent(getActivity(), MusicPlayer.class);
+                intent.putExtra("path", path);
+                startActivity(intent);
             }
         });
 
