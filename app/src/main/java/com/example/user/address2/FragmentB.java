@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +36,27 @@ public class FragmentB extends Fragment {
             this.image = image;
         }
     }
+    public class SquareImageView extends android.support.v7.widget.AppCompatImageView {
+        public SquareImageView(Context context) {
+            super(context);
+        }
+
+        public SquareImageView(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        public SquareImageView(Context context, AttributeSet attrs, int defStyle) {
+            super(context, attrs, defStyle);
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+            int width = getMeasuredWidth();
+            setMeasuredDimension(width, width);
+        }
+    }
 
     public class ImageAdapter extends BaseAdapter {
         private Context mContext;
@@ -56,17 +78,16 @@ public class FragmentB extends Fragment {
         }
 
         public View getView(int position, View convertView, ViewGroup parent){
-            ImageView imageView;
+            SquareImageView imageView;
             if(convertView == null){
-                imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300));
+                imageView = new SquareImageView(mContext);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 imageView.setPadding(0, 0,0,0);
             } else {
-                imageView = (ImageView) convertView;
+                imageView = (SquareImageView) convertView;
             }
             Bitmap b = ImageViewer.LoadThumbnail(ImgList.get(position).thumbnail.toString(), ImgList.get(position).image);
-            //imageView.setImageURI(ImgList.get(position).thumbnail);
+
             imageView.setImageBitmap(b);
             return imageView;
         }
@@ -95,8 +116,7 @@ public class FragmentB extends Fragment {
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[],
-                                           int[] grantResults)
-    {
+                                           int[] grantResults) {
         switch(requestCode){
             case 0:
                 if(grantResults.length > 0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
