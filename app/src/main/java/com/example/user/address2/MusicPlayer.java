@@ -1,14 +1,22 @@
 package com.example.user.address2;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +33,7 @@ public class MusicPlayer extends AppCompatActivity {
     Thread seekbarthread = null;
     TextView totaltime;
     TextView currenttime;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +41,7 @@ public class MusicPlayer extends AppCompatActivity {
         Intent intent = getIntent();
 
         String path = intent.getStringExtra("path");
+        String albumArtPath = intent.getStringExtra("albumart");
 
         playbtn = (Button) findViewById(R.id.button);
         stopbtn = (Button) findViewById(R.id.button1);
@@ -40,13 +50,27 @@ public class MusicPlayer extends AppCompatActivity {
         currenttime = (TextView) findViewById(R.id.textView1);
         totaltime = (TextView) findViewById(R.id.textView2);
 
-        //mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
+        ImageView albumArt = findViewById(R.id.albumart);
+        DisplayMetrics dm = new DisplayMetrics();
+        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(dm);
+        int width = dm.widthPixels;
+        Bitmap b;
+
+        if(albumArtPath != null){
+            b = BitmapFactory.decodeFile(albumArtPath, null);
+        } else {
+            b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
+        }
+        b = Bitmap.createScaledBitmap(b, width, width, true);
+        albumArt.setImageBitmap(b);
+
         mp = new MediaPlayer();
-        try{
+        try {
             mp.setDataSource(path);
             mp.prepare();
-        }catch(Exception e){
-
+        } catch(Exception e){
+            e.printStackTrace();
         }
         mp.setLooping(false);
 
@@ -119,12 +143,10 @@ public class MusicPlayer extends AppCompatActivity {
     }
 
     class SeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
-
         public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
             if(fromUser) {
                 mp.seekTo(progress);
             }
-
             currenttime.setText(strtime(mp.getCurrentPosition()));
         }
 
