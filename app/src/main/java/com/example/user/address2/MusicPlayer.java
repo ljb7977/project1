@@ -5,21 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -45,12 +39,12 @@ public class MusicPlayer extends AppCompatActivity {
         path = intent.getStringExtra("path");
         String albumArtPath = intent.getStringExtra("albumart");
 
-        playbtn = (Button) findViewById(R.id.button);
-        stopbtn = (Button) findViewById(R.id.button1);
-        repeatbtn = (Button) findViewById(R.id.button2);
-        seekbar = (SeekBar) findViewById(R.id.seekBar);
-        currenttime = (TextView) findViewById(R.id.textView1);
-        totaltime = (TextView) findViewById(R.id.textView2);
+        playbtn = findViewById(R.id.button);
+        stopbtn = findViewById(R.id.button1);
+        repeatbtn = findViewById(R.id.button2);
+        seekbar = findViewById(R.id.seekBar);
+        currenttime = findViewById(R.id.textView1);
+        totaltime = findViewById(R.id.textView2);
 
         ImageView albumArt = findViewById(R.id.albumart);
         DisplayMetrics dm = new DisplayMetrics();

@@ -38,7 +38,6 @@
             android:text="반복재생" />
     </LinearLayout>
 
-
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
@@ -66,7 +65,4 @@
         android:layout_marginEnd="13dp"
         android:text="mm:ss" />
 
-
-
 </RelativeLayout>
-
