@@ -185,7 +185,7 @@ public class FragmentB extends Fragment {
     public void callImageViewer(int index){
         Intent i = new Intent(getActivity(), ImageViewer.class);
         String path = ImgList.get(index).image;
-        i.putExtra("filename", path);
+        i.putExtra("filepath", path);
         startActivity(i);
     }
 }

@@ -26,11 +26,9 @@
             android:label="@string/title_activity_music_player"
             android:theme="@style/AppTheme">
         </activity>
-
-
         <activity
             android:name=".ImageViewer"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            android:theme="@style/AppTheme">
         </activity>
 
     </application>

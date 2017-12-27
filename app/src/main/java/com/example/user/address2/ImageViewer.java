@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -15,14 +17,17 @@ import java.io.IOException;
 
 import static android.content.ContentValues.TAG;
 
-public class ImageViewer extends Activity {
+public class ImageViewer extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.imageview);
+
         Intent i = getIntent();
-        String path = i.getExtras().getString("filename");
+        String path = i.getExtras().getString("filepath");
+        String name = path.substring(path.lastIndexOf("/")+1);
         Log.i("PATH", path);
+
         ImageView iv = findViewById(R.id.imageView);
 
         Bitmap b = LoadBitmap(path);
