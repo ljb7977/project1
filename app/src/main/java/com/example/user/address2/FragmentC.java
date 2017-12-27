@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -76,8 +78,17 @@ public class FragmentC extends Fragment {
             title.setText(s.title);
             artist.setText(s.artist);
 
-            
-            albumart.setImageURI(Uri.parse(s.albumCover));
+            Bitmap b;
+
+            if(s.albumCover != null){
+                BitmapFactory.Options bfo = new BitmapFactory.Options();
+                bfo.inSampleSize = 4;
+                b = BitmapFactory.decodeFile(s.albumCover, bfo);
+            } else {
+                b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
+            }
+            b = Bitmap.createScaledBitmap(b, 200, 200, true);
+            albumart.setImageBitmap(b);
 
             return convertView;
         }

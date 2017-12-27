@@ -36,6 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
+
         app:srcCompat="@android:drawable/ic_menu_report_image" />
 </RelativeLayout>
 
