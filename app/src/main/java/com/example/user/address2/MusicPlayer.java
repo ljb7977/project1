@@ -159,7 +159,6 @@ public class MusicPlayer extends AppCompatActivity {
                     continue;
                 }
                 else{
-                    Toast.makeText(getApplicationContext(), "출력할 문자열", Toast.LENGTH_LONG).show();
                     break;
                 }
             }
