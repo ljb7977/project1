@@ -16,8 +16,8 @@ public class MyApplication extends Application {
     @Override
     public void onCreate(){
         super.onCreate();
-        ImgList = new ArrayList<Photo>();
-        SongList = new ArrayList<Song>();
+        ImgList = new ArrayList<>();
+        SongList = new ArrayList<>();
     }
 
     public void loadData()
@@ -60,7 +60,7 @@ public class MyApplication extends Application {
     }
 
     private ArrayList<Song> fetchAllSongs() {
-        ArrayList<Song> songs = new ArrayList<Song>();
+        ArrayList<Song> songs = new ArrayList<>();
         String[] projection = {
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE,
@@ -79,7 +79,8 @@ public class MyApplication extends Application {
                 null
         );
 
-        Log.i("SONG", "start");
+        if(cursor == null)
+            return songs;
 
         while(cursor.moveToNext()){
             String albumCoverPath = null;
@@ -104,6 +105,7 @@ public class MyApplication extends Application {
                     cursor.getString(4),
                     albumCoverPath
             );
+
             Log.i("SONG", s.id);
             Log.i("SONG", s.title);
             Log.i("SONG", s.artist);
@@ -111,7 +113,9 @@ public class MyApplication extends Application {
             Log.i("SONG", s.data);
 
             songs.add(s);
+            albumCursor.close();
         }
+        cursor.close();
         return songs;
     }
 

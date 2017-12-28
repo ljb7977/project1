@@ -24,7 +24,6 @@ public class MusicPlayer extends AppCompatActivity {
     SeekBar seekbar;
     Thread seekbarthread = null;
     TextView totaltime, currenttime, title, artist;
-    String path;
     boolean repeat, ispaused;
     int position, width;
     ImageView albumArt;
@@ -35,9 +34,6 @@ public class MusicPlayer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_player);
         Intent intent = getIntent();
-
-        path = intent.getStringExtra("path");
-        String albumArtPath = intent.getStringExtra("albumart");
 
         MyApplication myApp = (MyApplication) getApplication();
         songs = myApp.getSongList();
