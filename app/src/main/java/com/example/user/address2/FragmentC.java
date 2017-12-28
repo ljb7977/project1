@@ -29,18 +29,7 @@ public class FragmentC extends Fragment {
     ArrayList<Song> songs;
     ListView listview;
 
-    public class Song {
-        String id, title, artist, data, albumCover;
-        long duration;
-        Song (String id, String title, String artist, long duration, String data, String albumCover) {
-            this.id = id;
-            this.title = title;
-            this.artist = artist;
-            this.duration = duration;
-            this.data = data;
-            this.albumCover = albumCover;
-        }
-    }
+
 
     public class MusicAdapter extends BaseAdapter{
         private Context mContext;
@@ -118,6 +107,8 @@ public class FragmentC extends Fragment {
                 Intent intent = new Intent(getActivity(), MusicPlayer.class);
                 intent.putExtra("path", path);
                 intent.putExtra("albumart", s.albumCover);
+                intent.putParcelableArrayListExtra("songlist", songs);
+                intent.putExtra("position", position);
                 startActivity(intent);
             }
         });

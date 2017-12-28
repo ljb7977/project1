@@ -16,19 +16,20 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MusicPlayer extends AppCompatActivity {
 
+    ArrayList<Song> songs;
     MediaPlayer mp;
     SeekBar seekbar;
-    Button playbtn;
-    Button stopbtn;
-    Button repeatbtn;
+    Button playbtn, stopbtn, repeatbtn;
     Thread seekbarthread = null;
-    TextView totaltime;
-    TextView currenttime;
+    TextView totaltime, currenttime;
     String path;
     boolean repeat, ispaused;
+    int position, width;
+    ImageView albumArt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,8 @@ public class MusicPlayer extends AppCompatActivity {
 
         path = intent.getStringExtra("path");
         String albumArtPath = intent.getStringExtra("albumart");
+        songs = intent.getParcelableArrayListExtra("songlist");
+        position = intent.getIntExtra("position", 1);
 
         playbtn = findViewById(R.id.button);
         stopbtn = findViewById(R.id.button1);
@@ -46,11 +49,23 @@ public class MusicPlayer extends AppCompatActivity {
         currenttime = findViewById(R.id.textView1);
         totaltime = findViewById(R.id.textView2);
 
-        ImageView albumArt = findViewById(R.id.albumart);
+        albumArt = findViewById(R.id.albumart);
         DisplayMetrics dm = new DisplayMetrics();
         WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         wm.getDefaultDisplay().getMetrics(dm);
-        int width = dm.widthPixels;
+        width = dm.widthPixels;
+
+        mp = new MediaPlayer();
+        mp.setLooping(false);
+        repeat = false;
+        ispaused = false;
+
+        /*try {
+            mp.setDataSource(path);
+            mp.prepare();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
         Bitmap b;
 
         if(albumArtPath != null){
@@ -60,53 +75,41 @@ public class MusicPlayer extends AppCompatActivity {
         }
         b = Bitmap.createScaledBitmap(b, width, width, true);
         albumArt.setImageBitmap(b);
-
-        mp = new MediaPlayer();
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
-            public void onCompletion(MediaPlayer m){
-                if(!repeat){
-                    playbtn.setText("재생");
-                    seekbar = null;
-                }
-
-            }
-        });
-        try {
-            mp.setDataSource(path);
-            mp.prepare();
-        } catch(Exception e){
-            e.printStackTrace();
-        }
         //mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
-        mp.setLooping(false);
-        repeat = false;
-        ispaused = false;
 
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
-            @Override
-            public void onCompletion(MediaPlayer m){
-               if(!repeat){
-                   mp.stop();
-                   try{
-                       mp.prepare();
-                   }catch(IllegalStateException e){
-                       e.printStackTrace();
-                   }catch(IOException e){
-                       e.printStackTrace();
-                   }
-                   mp.seekTo(0);
 
-                   playbtn.setText("재생");
-               }
-
-            }
-        });
         int duration = mp.getDuration();
         seekbar.setMax(duration);
 
         totaltime.setText(strtime(duration));
-        currenttime.setText("0:00");
-        //preparesong(path);
+        currenttime.setText("0:00");*/
+        preparesong(position);
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+            @Override
+            public void onCompletion(MediaPlayer m){
+                if(!repeat){
+                    mp.stop();
+                    position = position+1;
+                    if(position==songs.size()){
+                        position = 0;
+                    }
+                    preparesong(position);
+                    ispaused = false;
+                    mp.start();
+                    /*try{
+                        mp.prepare();
+                    }catch(IllegalStateException e){
+                        e.printStackTrace();
+                    }catch(IOException e){
+                        e.printStackTrace();
+                    }
+                    mp.seekTo(0);*/
+
+                   //playbtn.setText("재생");
+                }
+
+            }
+        });
         seekbar.setOnSeekBarChangeListener(new SeekBarChangeListener());
 
         playbtn.setOnClickListener(new View.OnClickListener(){
@@ -166,22 +169,33 @@ public class MusicPlayer extends AppCompatActivity {
         });
     }
 
-    public void preparesong(String path){
+    public void preparesong(int position){
+        String path = songs.get(position).data;
+        String albumArtPath = songs.get(position).albumCover;
+
         mp.reset();
-        /*try {
+        try {
             mp.setDataSource(path);
             mp.prepare();
         } catch(Exception e){
             e.printStackTrace();
-        }*/
-        mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
-        mp.setLooping(false);
+        }
 
         int duration = mp.getDuration();
         seekbar.setMax(duration);
 
         totaltime.setText(strtime(duration));
         currenttime.setText("0:00");
+
+        Bitmap b;
+
+        if(albumArtPath != null){
+            b = BitmapFactory.decodeFile(albumArtPath, null);
+        } else {
+            b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
+        }
+        b = Bitmap.createScaledBitmap(b, width, width, true);
+        albumArt.setImageBitmap(b);
     }
 
     public void onBackPressed() {
