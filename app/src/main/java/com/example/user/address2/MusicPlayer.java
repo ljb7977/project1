@@ -10,25 +10,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MusicPlayer extends AppCompatActivity {
 
+    ArrayList<Song> songs;
     MediaPlayer mp;
     SeekBar seekbar;
-    Button playbtn;
-    Button stopbtn;
-    Button repeatbtn;
     Thread seekbarthread = null;
-    TextView totaltime;
-    TextView currenttime;
+    TextView totaltime, currenttime, title, artist;
     String path;
     boolean repeat, ispaused;
+    int position, width;
+    ImageView albumArt;
+    ImageButton playbtn, stopbtn, repeatbtn, previousbtn, nextbtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,75 +40,50 @@ public class MusicPlayer extends AppCompatActivity {
         path = intent.getStringExtra("path");
         String albumArtPath = intent.getStringExtra("albumart");
 
-        playbtn = findViewById(R.id.button);
-        stopbtn = findViewById(R.id.button1);
-        repeatbtn = findViewById(R.id.button2);
+        MyApplication myApp = (MyApplication) getApplication();
+        songs = myApp.getSongList();
+        position = intent.getIntExtra("position", 1);
+
         seekbar = findViewById(R.id.seekBar);
         currenttime = findViewById(R.id.textView1);
         totaltime = findViewById(R.id.textView2);
+        title = findViewById(R.id.textView3);
+        artist = findViewById(R.id.textView4);
+        playbtn = findViewById(R.id.imageButton);
+        stopbtn = findViewById(R.id.imageButton1);
+        repeatbtn = findViewById(R.id.imageButton2);
+        previousbtn = findViewById(R.id.imageButton3);
+        nextbtn = findViewById(R.id.imageButton4);
 
-        ImageView albumArt = findViewById(R.id.albumart);
+        albumArt = findViewById(R.id.albumart);
         DisplayMetrics dm = new DisplayMetrics();
         WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         wm.getDefaultDisplay().getMetrics(dm);
-        int width = dm.widthPixels;
-        Bitmap b;
-
-        if(albumArtPath != null){
-            b = BitmapFactory.decodeFile(albumArtPath, null);
-        } else {
-            b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
-        }
-        b = Bitmap.createScaledBitmap(b, width, width, true);
-        albumArt.setImageBitmap(b);
+        width = dm.widthPixels;
 
         mp = new MediaPlayer();
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
-            public void onCompletion(MediaPlayer m){
-                if(!repeat){
-                    playbtn.setText("재생");
-                    seekbar = null;
-                }
 
-            }
-        });
-
-        try {
-            mp.setDataSource(path);
-            mp.prepare();
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        //mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
         mp.setLooping(false);
         repeat = false;
         ispaused = false;
 
+        preparesong(position);
         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
             @Override
             public void onCompletion(MediaPlayer m){
-               if(!repeat){
-                   mp.stop();
-                   try{
-                       mp.prepare();
-                   }catch(IllegalStateException e){
-                       e.printStackTrace();
-                   }catch(IOException e){
-                       e.printStackTrace();
-                   }
-                   mp.seekTo(0);
-
-                   playbtn.setText("재생");
-               }
+                if(!repeat){
+                    mp.stop();
+                    position = position+1;
+                    if(position==songs.size()){
+                        position = 0;
+                    }
+                    preparesong(position);
+                    ispaused = false;
+                    mp.start();
+                }
 
             }
         });
-        int duration = mp.getDuration();
-        seekbar.setMax(duration);
-
-        totaltime.setText(strtime(duration));
-        currenttime.setText("0:00");
-        //preparesong(path);
         seekbar.setOnSeekBarChangeListener(new SeekBarChangeListener());
 
         playbtn.setOnClickListener(new View.OnClickListener(){
@@ -116,13 +92,13 @@ public class MusicPlayer extends AppCompatActivity {
                 if(mp.isPlaying()){
                     mp.pause();
                     ispaused = true;
-                    playbtn.setText("재생");
+                    playbtn.setSelected(false);
                 }
                 else{
                     ispaused = false;
                     mp.start();
                     if(seekbarthread==null){
-                        playbtn.setText("일시정지");
+                        playbtn.setSelected(true);
                         Thread seekbarthread = new seekbarThread();
                         seekbarthread.start();
                     }
@@ -144,7 +120,7 @@ public class MusicPlayer extends AppCompatActivity {
                     }
                     mp.seekTo(0);
 
-                    playbtn.setText("재생");
+                    playbtn.setSelected(false);
                 }
             }
         });
@@ -155,34 +131,81 @@ public class MusicPlayer extends AppCompatActivity {
                 if(mp.isLooping()){
                     mp.setLooping(false);
                     repeat = false;
-                    repeatbtn.setText("반복재생");
+                    repeatbtn.setSelected(false);
                 }
                 else{
                     mp.setLooping(true);
                     repeat = true;
-                    repeatbtn.setText("한번재생");
+                    repeatbtn.setSelected(true);
                 }
 
             }
         });
+
+        previousbtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mp.seekTo(0);
+                boolean isplaying = mp.isPlaying();
+                position = position -1;
+                if(position == -1){
+                    position = songs.size()-1;
+                }
+                preparesong(position);
+                if(isplaying){
+                    mp.start();
+                }
+            }
+        });
+
+        nextbtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mp.seekTo(0);
+                boolean isplaying = mp.isPlaying();
+                position = position +1;
+                if(position == songs.size()){
+                    position = 0;
+                }
+                preparesong(position);
+                if(isplaying){
+                    mp.start();
+                }
+            }
+        });
     }
 
-    public void preparesong(String path){
+    public void preparesong(int position){
+        Song song = songs.get(position);
+        String path = song.data;
+        String albumArtPath = song.albumCover;
+        String title_name = song.title;
+        String artist_name = song.artist;
+
         mp.reset();
-        /*try {
+        try {
             mp.setDataSource(path);
             mp.prepare();
         } catch(Exception e){
             e.printStackTrace();
-        }*/
-        mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
-        mp.setLooping(false);
+        }
 
         int duration = mp.getDuration();
         seekbar.setMax(duration);
 
         totaltime.setText(strtime(duration));
         currenttime.setText("0:00");
+        title.setText(title_name);
+        artist.setText(artist_name);
+
+        Bitmap b;
+        if(albumArtPath != null){
+            b = BitmapFactory.decodeFile(albumArtPath, null);
+        } else {
+            b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
+        }
+        b = Bitmap.createScaledBitmap(b, width, width, true);
+        albumArt.setImageBitmap(b);
     }
 
     public void onBackPressed() {

@@ -90,6 +90,8 @@ public class FragmentC extends Fragment {
                 Intent intent = new Intent(getActivity(), MusicPlayer.class);
                 intent.putExtra("path", path);
                 intent.putExtra("albumart", s.albumCover);
+                //intent.putParcelableArrayListExtra("songlist", songs);
+                intent.putExtra("position", position);
                 startActivity(intent);
             }
         });
