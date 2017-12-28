@@ -34,7 +34,7 @@ public class ImageViewer extends AppCompatActivity
     String path;
     int index;
 
-    final int delayMillis = 2000;
+    final int delayMillis = 3000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -13,6 +13,13 @@ public class MyApplication extends Application {
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
 
+    @Override
+    public void onCreate(){
+        super.onCreate();
+        ImgList = new ArrayList<Photo>();
+        SongList = new ArrayList<Song>();
+    }
+
     public void loadData()
     {
         ImgList = fetchAllImages();

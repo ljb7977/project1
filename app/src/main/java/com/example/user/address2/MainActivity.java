@@ -20,8 +20,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MyApplication myApp = (MyApplication) getApplication();
-
         // Initializing the TabLayout
         tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Contacts"));
@@ -32,20 +30,9 @@ public class MainActivity extends AppCompatActivity {
         // Initializing ViewPager
         viewPager = findViewById(R.id.pager);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) +
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            Log.i("permission", "permission request");
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-            }, 0);
-        } else {
-            myApp.loadData();
-            // Creating TabPagerAdapter adapter
-            TabPagerAdapter pagerAdapter = new TabPagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
-            viewPager.setAdapter(pagerAdapter);
-        }
-
+        // Creating TabPagerAdapter adapter
+        TabPagerAdapter pagerAdapter = new TabPagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
+        viewPager.setAdapter(pagerAdapter);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
         // Set TabSelectedListener
@@ -66,6 +53,19 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        MyApplication myApp = (MyApplication) getApplication();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) +
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            Log.i("permission", "permission request");
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, 0);
+        } else {
+            myApp.loadData();
+        }
     }
 
     @Override
@@ -77,9 +77,6 @@ public class MainActivity extends AppCompatActivity {
                 if(grantResults.length > 0 && grantResults[0]==PackageManager.PERMISSION_GRANTED &&
                         grantResults[1] == PackageManager.PERMISSION_GRANTED){
                     myApp.loadData();
-                    // Creating TabPagerAdapter adapter
-                    TabPagerAdapter pagerAdapter = new TabPagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
-                    viewPager.setAdapter(pagerAdapter);
                 }
         }
     }

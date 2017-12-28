@@ -71,6 +71,7 @@ public class MusicPlayer extends AppCompatActivity {
 
             }
         });
+
         try {
             mp.setDataSource(path);
             mp.prepare();
