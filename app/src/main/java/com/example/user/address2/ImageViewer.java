@@ -5,14 +5,19 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 
@@ -21,9 +26,15 @@ import java.io.IOException;
 
 import static android.content.ContentValues.TAG;
 
-public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener, View.OnClickListener {
+public class ImageViewer extends AppCompatActivity
+        implements PopupMenu.OnMenuItemClickListener, View.OnClickListener
+{
+    Toolbar toolbar;
+    boolean toolbarShowing = true;
+    String path;
+    int index;
 
-    ActionBar ab;
+    final int delayMillis = 2000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,34 +42,61 @@ public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuIt
         setContentView(R.layout.imageview);
 
         Intent i = getIntent();
-        String path = i.getExtras().getString("filepath");
+        path = i.getExtras().getString("filepath");
+        index = i.getExtras().getInt("index");
+
         String name = path.substring(path.lastIndexOf("/")+1);
         Log.i("PATH", path);
 
-        ab = getSupportActionBar();
-        ab.setTitle(name);
+        toolbar = findViewById(R.id.toolbar);
+        toolbar.bringToFront();
 
-        ImageView iv = findViewById(R.id.imageView);
-
-        iv.setOnClickListener(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(name);
 
         Bitmap b = LoadBitmap(path);
+
+        ImageView iv = findViewById(R.id.imageView);
+        iv.setOnClickListener(this);
         iv.setImageBitmap(b);
 
         Handler h = new Handler();
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                getSupportActionBar().hide();
+                toolbarShowing = false;
+                toolbar.animate().translationY(-toolbar.getBottom()).
+                        setInterpolator(new AccelerateInterpolator()).start();
+                //getSupportActionBar().hide();
             }
-        }, 1000);
+        }, delayMillis);
     }
 
     public void onClick(View v){
-        if(ab.isShowing())
-            ab.hide();
+        if(toolbarShowing){ //hide
+            toolbar.animate().translationY(-toolbar.getBottom()).
+                    setInterpolator(new AccelerateInterpolator()).start();
+        } else { //show
+            toolbar.animate().translationY(0).
+                    setInterpolator(new DecelerateInterpolator()).start();
+
+            Handler h = new Handler();
+            h.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    toolbarShowing = false;
+                    toolbar.animate().translationY(-toolbar.getBottom()).
+                            setInterpolator(new AccelerateInterpolator()).start();
+                }
+            }, delayMillis);
+        }
+        toolbarShowing = !toolbarShowing;
+        /*
+        if(getSupportActionBar().isShowing())
+            getSupportActionBar().hide();
         else
-            ab.show();
+            getSupportActionBar().show();
+            */
     }
 
     @Override
@@ -87,7 +125,29 @@ public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuIt
     {
         switch(item.getItemId()){
             case R.id.action_delete:
-                Log.i("DELETE", "delete menu clicked");
+                ImageView iv = findViewById(R.id.imageView);
+                iv.destroyDrawingCache();
+                Log.i("DELETE", path);
+                File deleteFile = new File(path);
+                if(deleteFile.exists()){
+                    if(deleteFile.delete()){
+                        Log.i("DELETE", "delete succeed");
+                        MediaScannerConnection.scanFile(this, new String[]{
+                                Environment.getExternalStorageDirectory().toString()
+                        }, null, new MediaScannerConnection.OnScanCompletedListener() {
+                            @Override
+                            public void onScanCompleted(String s, Uri uri) {
+
+                            }
+                        });
+                        Intent i = new Intent();
+                        i.putExtra("index", index);
+                        setResult(1, i);
+                        finish();
+                    } else {
+                        Log.i("DELETE", "delete failed");
+                    }
+                }
                 return true;
             default:
                 return false;
@@ -130,7 +190,8 @@ public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuIt
             m.setRotate(degree, bitmap.getWidth()/2.0f, bitmap.getHeight()/2.0f);
 
             try{
-                Bitmap b2 = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+                Bitmap b2 = Bitmap.createBitmap(bitmap, 0, 0,
+                        bitmap.getWidth(), bitmap.getHeight(), m, true);
                 if(bitmap != b2){
                     bitmap.recycle();
                     bitmap = b2;
