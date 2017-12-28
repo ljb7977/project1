@@ -10,7 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -23,13 +23,13 @@ public class MusicPlayer extends AppCompatActivity {
     ArrayList<Song> songs;
     MediaPlayer mp;
     SeekBar seekbar;
-    Button playbtn, stopbtn, repeatbtn;
     Thread seekbarthread = null;
-    TextView totaltime, currenttime;
+    TextView totaltime, currenttime, title, artist;
     String path;
     boolean repeat, ispaused;
     int position, width;
     ImageView albumArt;
+    ImageButton playbtn, stopbtn, repeatbtn, previousbtn, nextbtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,12 +44,16 @@ public class MusicPlayer extends AppCompatActivity {
         songs = myApp.getSongList();
         position = intent.getIntExtra("position", 1);
 
-        playbtn = findViewById(R.id.button);
-        stopbtn = findViewById(R.id.button1);
-        repeatbtn = findViewById(R.id.button2);
         seekbar = findViewById(R.id.seekBar);
         currenttime = findViewById(R.id.textView1);
         totaltime = findViewById(R.id.textView2);
+        title = findViewById(R.id.textView3);
+        artist = findViewById(R.id.textView4);
+        playbtn = findViewById(R.id.imageButton);
+        stopbtn = findViewById(R.id.imageButton1);
+        repeatbtn = findViewById(R.id.imageButton2);
+        previousbtn = findViewById(R.id.imageButton3);
+        nextbtn = findViewById(R.id.imageButton4);
 
         albumArt = findViewById(R.id.albumart);
         DisplayMetrics dm = new DisplayMetrics();
@@ -62,29 +66,6 @@ public class MusicPlayer extends AppCompatActivity {
         repeat = false;
         ispaused = false;
 
-        /*try {
-            mp.setDataSource(path);
-            mp.prepare();
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        Bitmap b;
-
-        if(albumArtPath != null){
-            b = BitmapFactory.decodeFile(albumArtPath, null);
-        } else {
-            b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
-        }
-        b = Bitmap.createScaledBitmap(b, width, width, true);
-        albumArt.setImageBitmap(b);
-        //mp = MediaPlayer.create(MusicPlayer.this, R.raw.konan);
-
-
-        int duration = mp.getDuration();
-        seekbar.setMax(duration);
-
-        totaltime.setText(strtime(duration));
-        currenttime.setText("0:00");*/
         preparesong(position);
         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
             @Override
@@ -98,16 +79,6 @@ public class MusicPlayer extends AppCompatActivity {
                     preparesong(position);
                     ispaused = false;
                     mp.start();
-                    /*try{
-                        mp.prepare();
-                    }catch(IllegalStateException e){
-                        e.printStackTrace();
-                    }catch(IOException e){
-                        e.printStackTrace();
-                    }
-                    mp.seekTo(0);*/
-
-                   //playbtn.setText("재생");
                 }
 
             }
@@ -120,13 +91,13 @@ public class MusicPlayer extends AppCompatActivity {
                 if(mp.isPlaying()){
                     mp.pause();
                     ispaused = true;
-                    playbtn.setText("재생");
+                    playbtn.setSelected(false);
                 }
                 else{
                     ispaused = false;
                     mp.start();
                     if(seekbarthread==null){
-                        playbtn.setText("일시정지");
+                        playbtn.setSelected(true);
                         Thread seekbarthread = new seekbarThread();
                         seekbarthread.start();
                     }
@@ -148,7 +119,7 @@ public class MusicPlayer extends AppCompatActivity {
                     }
                     mp.seekTo(0);
 
-                    playbtn.setText("재생");
+                    playbtn.setSelected(false);
                 }
             }
         });
@@ -159,21 +130,56 @@ public class MusicPlayer extends AppCompatActivity {
                 if(mp.isLooping()){
                     mp.setLooping(false);
                     repeat = false;
-                    repeatbtn.setText("반복재생");
+                    repeatbtn.setSelected(false);
                 }
                 else{
                     mp.setLooping(true);
                     repeat = true;
-                    repeatbtn.setText("한번재생");
+                    repeatbtn.setSelected(true);
                 }
 
+            }
+        });
+
+        previousbtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mp.seekTo(0);
+                boolean isplaying = mp.isPlaying();
+                position = position -1;
+                if(position == -1){
+                    position = songs.size()-1;
+                }
+                preparesong(position);
+                if(isplaying){
+                    mp.start();
+                }
+            }
+        });
+
+        nextbtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mp.seekTo(0);
+                boolean isplaying = mp.isPlaying();
+                position = position +1;
+                if(position == songs.size()){
+                    position = 0;
+                }
+                preparesong(position);
+                if(isplaying){
+                    mp.start();
+                }
             }
         });
     }
 
     public void preparesong(int position){
-        String path = songs.get(position).data;
-        String albumArtPath = songs.get(position).albumCover;
+        Song song = songs.get(position);
+        String path = song.data;
+        String albumArtPath = song.albumCover;
+        String title_name = song.title;
+        String artist_name = song.artist;
 
         mp.reset();
         try {
@@ -188,9 +194,10 @@ public class MusicPlayer extends AppCompatActivity {
 
         totaltime.setText(strtime(duration));
         currenttime.setText("0:00");
+        title.setText(title_name);
+        artist.setText(artist_name);
 
         Bitmap b;
-
         if(albumArtPath != null){
             b = BitmapFactory.decodeFile(albumArtPath, null);
         } else {
