@@ -29,6 +29,11 @@
             android:layout_height="60dp"
             app:srcCompat="@android:drawable/ic_media_previous" />
         <ImageButton
+            android:id="@+id/imageButton2"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:srcCompat="@drawable/repeat_select" />
+        <ImageButton
             android:id="@+id/imageButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
@@ -38,11 +43,6 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             app:srcCompat="@android:drawable/checkbox_off_background" />
-        <ImageButton
-            android:id="@+id/imageButton2"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            app:srcCompat="@drawable/repeat_select" />
         <ImageButton
             android:id="@+id/imageButton4"
             android:layout_width="60dp"
@@ -85,16 +85,15 @@
         android:layout_alignStart="@+id/textView1"
         android:layout_below="@+id/textView1"
         android:layout_marginTop="19dp"
-        android:text="TextView" />
+        android:text="Title" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/textView3"
-        android:layout_marginStart="18dp"
-        android:layout_toEndOf="@+id/textView3"
-        android:text="TextView"
+        android:layout_alignStart="@+id/textView3"
+        android:layout_below="@+id/textView3"
+        android:text="Artist"
         android:textSize="14sp" />
 
 

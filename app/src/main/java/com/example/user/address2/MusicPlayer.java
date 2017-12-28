@@ -61,6 +61,7 @@ public class MusicPlayer extends AppCompatActivity {
         width = dm.widthPixels;
 
         mp = new MediaPlayer();
+
         mp.setLooping(false);
         ispaused = false;
 
