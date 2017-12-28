@@ -24,7 +24,7 @@ public class MusicPlayer extends AppCompatActivity {
     SeekBar seekbar;
     Thread seekbarthread = null;
     TextView totaltime, currenttime, title, artist;
-    boolean repeat, ispaused;
+    boolean ispaused;
     int position, width;
     ImageView albumArt;
     ImageButton playbtn, stopbtn, repeatbtn, previousbtn, nextbtn;
@@ -59,14 +59,13 @@ public class MusicPlayer extends AppCompatActivity {
         mp = new MediaPlayer();
 
         mp.setLooping(false);
-        repeat = false;
         ispaused = false;
 
         preparesong(position);
         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
             @Override
             public void onCompletion(MediaPlayer m){
-                if(!repeat){
+                if(!mp.isLooping()){
                     mp.stop();
                     position = position+1;
                     if(position==songs.size()){
@@ -76,7 +75,6 @@ public class MusicPlayer extends AppCompatActivity {
                     ispaused = false;
                     mp.start();
                 }
-
             }
         });
         seekbar.setOnSeekBarChangeListener(new SeekBarChangeListener());
@@ -125,12 +123,10 @@ public class MusicPlayer extends AppCompatActivity {
             public void onClick(View v){
                 if(mp.isLooping()){
                     mp.setLooping(false);
-                    repeat = false;
                     repeatbtn.setSelected(false);
                 }
                 else{
                     mp.setLooping(true);
-                    repeat = true;
                     repeatbtn.setSelected(true);
                 }
 
@@ -141,6 +137,7 @@ public class MusicPlayer extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 mp.seekTo(0);
+                seekbar.setProgress(mp.getCurrentPosition());
                 boolean isplaying = mp.isPlaying();
                 position = position -1;
                 if(position == -1){
@@ -157,6 +154,7 @@ public class MusicPlayer extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 mp.seekTo(0);
+                seekbar.setProgress(mp.getCurrentPosition());
                 boolean isplaying = mp.isPlaying();
                 position = position +1;
                 if(position == songs.size()){
@@ -176,12 +174,14 @@ public class MusicPlayer extends AppCompatActivity {
         String albumArtPath = song.albumCover;
         String title_name = song.title;
         String artist_name = song.artist;
+        boolean islooping = mp.isLooping();
 
         mp.reset();
         try {
             mp.setDataSource(path);
             mp.prepare();
-        } catch(Exception e){
+            mp.setLooping(islooping);
+        } catch(Exception e) {
             e.printStackTrace();
         }
 
@@ -208,7 +208,6 @@ public class MusicPlayer extends AppCompatActivity {
         if(mp.isPlaying()){
             mp.stop();
         }
-        seekbarthread.interrupt();
     }
 
     class SeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
@@ -237,18 +236,12 @@ public class MusicPlayer extends AppCompatActivity {
         }
         public void run(){
             while(true){
-                if(mp.isPlaying() || ispaused){
-                    try{
-                        Thread.sleep(1000);
-                    }catch(InterruptedException e){
-                        e.printStackTrace();
-                    }
-                    seekbar.setProgress(mp.getCurrentPosition());
-
+                try{
+                    Thread.sleep(1000);
+                }catch(InterruptedException e){
+                    e.printStackTrace();
                 }
-                /*else{
-                    break;
-                }*/
+                seekbar.setProgress(mp.getCurrentPosition());
             }
         }
     }
