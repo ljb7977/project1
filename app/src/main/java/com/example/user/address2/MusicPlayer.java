@@ -39,7 +39,9 @@ public class MusicPlayer extends AppCompatActivity {
 
         path = intent.getStringExtra("path");
         String albumArtPath = intent.getStringExtra("albumart");
-        songs = intent.getParcelableArrayListExtra("songlist");
+
+        MyApplication myApp = (MyApplication) getApplication();
+        songs = myApp.getSongList();
         position = intent.getIntExtra("position", 1);
 
         playbtn = findViewById(R.id.button);
