@@ -28,7 +28,7 @@
         </activity>
         <activity
             android:name=".ImageViewer"
-            android:theme="@style/AppTheme">
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
         </activity>
 
     </application>
