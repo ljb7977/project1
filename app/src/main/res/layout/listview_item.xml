@@ -6,12 +6,12 @@
     android:orientation="vertical">
 
     <TextView
-        android:padding="8dp"
         android:id="@+id/textView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="8dp"
         android:text="Name"
-        android:textAlignment="textStart"
+        android:textAlignment="center"
         android:textSize="30sp" />
 
 </RelativeLayout>
