@@ -134,6 +134,9 @@ public class MyApplication extends Application {
     public ArrayList<Photo> getImgList() {
         return ImgList;
     }
+    public void setImgList(ArrayList<Photo> l){
+        ImgList = l;
+    }
     public ArrayList<Song> getSongList() {
         return SongList;
     }

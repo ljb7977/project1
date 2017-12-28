@@ -5,7 +5,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +27,8 @@ import static android.content.ContentValues.TAG;
 public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener, View.OnClickListener {
 
     ActionBar ab;
+    String path;
+    int index;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +36,9 @@ public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuIt
         setContentView(R.layout.imageview);
 
         Intent i = getIntent();
-        String path = i.getExtras().getString("filepath");
+        path = i.getExtras().getString("filepath");
+        index = i.getExtras().getInt("index");
+
         String name = path.substring(path.lastIndexOf("/")+1);
         Log.i("PATH", path);
 
@@ -87,7 +94,29 @@ public class ImageViewer extends AppCompatActivity implements PopupMenu.OnMenuIt
     {
         switch(item.getItemId()){
             case R.id.action_delete:
-                Log.i("DELETE", "delete menu clicked");
+                ImageView iv = findViewById(R.id.imageView);
+                iv.destroyDrawingCache();
+                Log.i("DELETE", path);
+                File deleteFile = new File(path);
+                if(deleteFile.exists()){
+                    if(deleteFile.delete()){
+                        Log.i("DELETE", "delete succeed");
+                        MediaScannerConnection.scanFile(this, new String[]{
+                                Environment.getExternalStorageDirectory().toString()
+                        }, null, new MediaScannerConnection.OnScanCompletedListener() {
+                            @Override
+                            public void onScanCompleted(String s, Uri uri) {
+
+                            }
+                        });
+                        Intent i = new Intent();
+                        i.putExtra("index", index);
+                        setResult(1, i);
+                        finish();
+                    } else {
+                        Log.i("DELETE", "delete failed");
+                    }
+                }
                 return true;
             default:
                 return false;

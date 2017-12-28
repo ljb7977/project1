@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -100,6 +101,25 @@ public class FragmentB extends Fragment {
         Intent i = new Intent(getActivity(), ImageViewer.class);
         String path = ImgList.get(index).image;
         i.putExtra("filepath", path);
-        startActivity(i);
+        i.putExtra("index", index);
+        startActivityForResult(i, 0);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == 0){
+            if(resultCode == 1) {
+                int index = data.getExtras().getInt("index");
+
+                ImgList.remove(index);
+                MyApplication myApp = (MyApplication) getActivity().getApplication();
+                myApp.setImgList(ImgList);
+
+                ImageAdapter adapter = (ImageAdapter) gridview.getAdapter();
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(getContext(), "Deleted", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
