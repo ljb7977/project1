@@ -14,7 +14,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -213,6 +212,7 @@ public class MusicPlayer extends AppCompatActivity {
         if(mp.isPlaying()){
             mp.stop();
         }
+        seekbarthread.interrupt();
     }
 
     class SeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
@@ -250,12 +250,9 @@ public class MusicPlayer extends AppCompatActivity {
                     seekbar.setProgress(mp.getCurrentPosition());
 
                 }
-                /*else if(mp.getCurrentPosition()>1){
-                    continue;
-                }*/
-                else{
+                /*else{
                     break;
-                }
+                }*/
             }
         }
     }
