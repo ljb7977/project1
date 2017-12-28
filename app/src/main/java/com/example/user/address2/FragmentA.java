@@ -15,15 +15,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 
 public class FragmentA extends Fragment {
     String str;
+    ArrayList<Contact> ContactList;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab_fragment1, container, false);
 
         ListView listview = view.findViewById(R.id.listview);
         final ListViewAdapter adapter = new ListViewAdapter();
+
+        MyApplication myApp = (MyApplication) getActivity().getApplication();
+        ContactList = myApp.getContactList();
 
         listview.setAdapter(adapter);
 
@@ -54,6 +59,10 @@ public class FragmentA extends Fragment {
             }catch(JSONException e){
                 e.printStackTrace();
             }
+        }
+        for(int i=0; i<ContactList.size(); i++){
+            Contact c = ContactList.get(i);
+            adapter.addItem(c.name, c.number, c.email);
         }
         return view;
     }
