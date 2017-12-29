@@ -124,7 +124,7 @@ public class MyApplication extends Application {
         return songs;
     }
 
-    private ArrayList<Contact> fetchAllContacts(){
+    private ArrayList<Contact> getLocalContacts(){
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
         ArrayList<Contact> contacts = new ArrayList<Contact>();
 
@@ -143,7 +143,7 @@ public class MyApplication extends Application {
                 sortOrder
         );
 
-        Log.i("CONTACT", "start");
+        // Log.i("CONTACT", "start");
         while(cursor.moveToNext()){
             String email = "";
             String number = cursor.getString(1).replaceAll("-","");
@@ -170,13 +170,32 @@ public class MyApplication extends Application {
                     email
             );
 
-            Log.i("CONTACT", c.name);
-            Log.i("CONTACT", c.number);
-            Log.i("CONTACT", c.email);
+            // Log.i("CONTACT", c.name);
+            // Log.i("CONTACT", c.number);
+            // Log.i("CONTACT", c.email);
 
             contacts.add(c);
         }
         return contacts;
+    }
+    private ArrayList<Contact> getServerContacts(){
+        // TODO: implement server communication
+        return new ArrayList<>();
+    }
+    private ArrayList<Contact> merge_contacts(ArrayList<Contact> local, ArrayList<Contact> remote)
+    {
+        // TODO: merge contacts with comparing object
+        ArrayList<Contact> retval = new ArrayList<>();
+        retval.addAll(local);
+        retval.addAll(remote);
+        return retval;
+
+    }
+    private ArrayList<Contact> fetchAllContacts(){
+        // TODO: using AsyncTask to avoid UI lack
+        ArrayList<Contact> local_contacts = getLocalContacts();
+        ArrayList<Contact> server_contacts = getServerContacts();
+        return merge_contacts(local_contacts, server_contacts);
     }
 
     private Uri createThumbnails(String id){
