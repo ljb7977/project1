@@ -184,10 +184,12 @@ public class MyApplication extends Application {
     }
     private ArrayList<Contact> merge_contacts(ArrayList<Contact> local, ArrayList<Contact> remote)
     {
-        // TODO: merge contacts with comparing object
-        ArrayList<Contact> retval = new ArrayList<>();
-        retval.addAll(local);
-        retval.addAll(remote);
+        ArrayList<Contact> retval = local;
+        for(Contact i:remote)
+        {
+            if(!retval.contains(i))
+                retval.add(i);
+        }
         return retval;
 
     }

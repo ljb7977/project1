@@ -11,4 +11,15 @@ public class Contact {
         this.number = number;
         this.email = email;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        boolean isSame = false;
+        if (obj != null && obj instanceof Contact)
+        {
+            Contact objC = (Contact)obj;
+            isSame = name.equals(objC.name) && number.equals(objC.number) && email.equals(objC.email);
+        }
+        return isSame;
+    }
 }
