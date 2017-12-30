@@ -1,4 +1,4 @@
-package com.example.user.address2;
+package com.example.user.project2;
 
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -35,7 +35,7 @@ public class FragmentA extends Fragment {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id){
-                Intent intent = new Intent(getActivity(), Address2.class);
+                Intent intent = new Intent(getActivity(), ContactViewer.class);
                 ListViewItem item = (ListViewItem)adapter.getItem(position);
                 intent.putExtra("name", item.getName());
                 intent.putExtra("number", item.getNumber());
