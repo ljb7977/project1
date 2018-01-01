@@ -122,7 +122,8 @@ public class MyApplication extends Application {
         return songs;
     }
 
-    private ArrayList<Contact> getLocalContacts(){
+    private ArrayList<Contact> getDeviceContacts()
+    {
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
         ArrayList<Contact> contacts = new ArrayList<Contact>();
 
@@ -157,8 +158,8 @@ public class MyApplication extends Application {
             }
             Cursor emailCursor = getApplicationContext().getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
                     new String[]{ContactsContract.CommonDataKinds.Email.DATA},
-                    "DISPLAY_NAME"+"='"+name+"'",
-                    null, null);
+                    "DISPLAY_NAME=?",
+                    new String[]{name}, null);
             if(emailCursor.moveToFirst()){
                 email = emailCursor.getString(0);
             }
@@ -175,6 +176,27 @@ public class MyApplication extends Application {
             contacts.add(c);
         }
         return contacts;
+
+    }
+    private ArrayList<Contact> getSavedContacts()
+    {
+        // TODO: get saved contact from json file
+        return new ArrayList<>();
+    }
+    private void saveContacts(ArrayList<Contact> lists)
+    {
+        //TODO: save contact to json file
+    }
+
+    private ArrayList<Contact> getLocalContacts(){
+        // TODO: make local json file to save facebook id
+
+        ArrayList<Contact> deviceContact = getDeviceContacts();
+        ArrayList<Contact> savedContact = getSavedContacts();
+        ArrayList<Contact> total_contact = merge_contacts(deviceContact, savedContact);
+        saveContacts(total_contact);
+        return total_contact;
+
     }
     private ArrayList<Contact> getServerContacts(){
         // TODO: implement server communication
@@ -194,8 +216,7 @@ public class MyApplication extends Application {
     private ArrayList<Contact> fetchAllContacts(){
         // TODO: using AsyncTask to avoid UI lack
         ArrayList<Contact> local_contacts = getLocalContacts();
-        ArrayList<Contact> server_contacts = getServerContacts();
-        return merge_contacts(local_contacts, server_contacts);
+        return local_contacts;
     }
 
     private Uri createThumbnails(String id){
