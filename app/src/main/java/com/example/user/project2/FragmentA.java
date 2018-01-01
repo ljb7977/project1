@@ -45,17 +45,7 @@ public class FragmentA extends Fragment {
 
         ListView listview = view.findViewById(R.id.listview);
         callbackManager = CallbackManager.Factory.create();
-        new HTTPJSONRequest("http://143.248.36.226:3000/contacts", "GET").setHandler(new HTTPJSONRequestHandler() {
-            @Override
-            public void on_response(JSONObject response) {
-                Log.d("JSON", response.toString());
-            }
 
-            @Override
-            public void on_fail() {
-                Log.d("JSON", "fail");
-            }
-        }).execAsync();
         LoginButton loginButton = (LoginButton) view.findViewById(R.id.login_button);
         // If using in a fragment
         loginButton.setFragment(this);
@@ -105,6 +95,7 @@ public class FragmentA extends Fragment {
                 parameters.putString("fields", "name");
                 request.setParameters(parameters);
                 request.executeAsync();
+
                 Log.d("FLOGIN","SUCCESS");
                 // App code
             }
@@ -160,6 +151,47 @@ public class FragmentA extends Fragment {
             Contact c = ContactList.get(i);
             adapter.addItem(c.name, c.number, c.email);
         }
+
+        new HTTPJSONRequest("http://143.248.36.226:3000/contacts", "GET").setHandler(new HTTPJSONRequestHandler() {
+            @Override
+            public void on_response(JSONObject response) {
+                try {
+                    JSONArray f = response.getJSONArray("content");
+                    if(response.has("data"))
+                        if(f == null) return;
+                    int le = f.length();
+                    for(int i = 0; i < le; i++)
+                    {
+                        JSONObject fi = f.getJSONObject(i);
+                        if(fi != null)
+                        {
+                            String name = "";
+                            String number = "";
+                            String email = "";
+                            if(fi.has("name"))
+                                name = fi.getString("name");
+                            if(fi.has("phone"))
+                                number = fi.getString("phone");
+                            if(fi.has("email"))
+                                email = fi.getString("email");
+                            if(adapter != null)
+                                adapter.addItem(name, number, email);
+                        }
+                    }
+                    if(adapter != null)
+                    {
+                        adapter.notifyDataSetChanged();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void on_fail() {
+                Log.d("JSON", "fail");
+            }
+        }).execAsync();
         return view;
     }
 
