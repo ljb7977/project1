@@ -51,50 +51,18 @@ public class FragmentA extends Fragment {
         loginButton.setFragment(this);
         loginButton.setReadPermissions(Arrays.asList("user_friends"));
         FacebookSdk.addLoggingBehavior(LoggingBehavior.REQUESTS);
+
+        if(AccessToken.getCurrentAccessToken() != null)
+        {
+            executeFacebookContactTask(AccessToken.getCurrentAccessToken() );
+        }
         Log.d("FLOGIN","BEFORE");
         // Callback registration
         LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 AccessToken token = loginResult.getAccessToken();
-                GraphRequest request =
-                new GraphRequest(token,
-                        "/me/taggable_friends",
-                        null,
-                        HttpMethod.GET,
-                        new PagingRequestCallback(
-                        new GraphRequest.Callback() {
-                            public void onCompleted(GraphResponse response)
-                            {
-                                JSONObject x = response.getJSONObject();
-                                    try {
-                                    JSONArray f = x.getJSONArray("data");
-                                        if(x.has("data"))
-                                    if(f == null) return;
-                                    int le = f.length();
-                                    for(int i = 0; i < le; i++)
-                                    {
-                                        JSONObject fi = f.getJSONObject(i);
-                                        if(fi != null && fi.has("name"))
-                                        {
-                                            if(adapter != null)
-                                                adapter.addItem(fi.getString("name"), "", "");
-                                        }
-                                    }
-                                    if(adapter != null)
-                                    {
-                                        adapter.notifyDataSetChanged();
-                                    }
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                            }
-                        })
-                        );
-                Bundle parameters = new Bundle();
-                parameters.putString("fields", "name");
-                request.setParameters(parameters);
-                request.executeAsync();
+                executeFacebookContactTask(token);
 
                 Log.d("FLOGIN","SUCCESS");
                 // App code
@@ -214,6 +182,48 @@ public class FragmentA extends Fragment {
         if(callbackManager != null)
             callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void executeFacebookContactTask(AccessToken token)
+    {
+        GraphRequest request =
+                new GraphRequest(token,
+                        "/me/taggable_friends",
+                        null,
+                        HttpMethod.GET,
+                        new PagingRequestCallback(
+                                new GraphRequest.Callback() {
+                                    public void onCompleted(GraphResponse response)
+                                    {
+                                        JSONObject x = response.getJSONObject();
+                                        try {
+                                            JSONArray f = x.getJSONArray("data");
+                                            if(x.has("data"))
+                                                if(f == null) return;
+                                            int le = f.length();
+                                            for(int i = 0; i < le; i++)
+                                            {
+                                                JSONObject fi = f.getJSONObject(i);
+                                                if(fi != null && fi.has("name"))
+                                                {
+                                                    if(adapter != null)
+                                                        adapter.addItem(fi.getString("name"), "", "");
+                                                }
+                                            }
+                                            if(adapter != null)
+                                            {
+                                                adapter.notifyDataSetChanged();
+                                            }
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                })
+                );
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "name");
+        request.setParameters(parameters);
+        request.executeAsync();
     }
 }
 

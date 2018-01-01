@@ -18,7 +18,7 @@ public class Contact {
         if (obj != null && obj instanceof Contact)
         {
             Contact objC = (Contact)obj;
-            isSame = name.equals(objC.name) && number.equals(objC.number) && email.equals(objC.email);
+            isSame = name.equals(objC.name);
         }
         return isSame;
     }
