@@ -2,6 +2,7 @@ package com.example.user.project2;
 
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -44,7 +45,17 @@ public class FragmentA extends Fragment {
 
         ListView listview = view.findViewById(R.id.listview);
         callbackManager = CallbackManager.Factory.create();
+        new HTTPJSONRequest("http://143.248.36.226:3000/contacts", "GET").setHandler(new HTTPJSONRequestHandler() {
+            @Override
+            public void on_response(JSONObject response) {
+                Log.d("JSON", response.toString());
+            }
 
+            @Override
+            public void on_fail() {
+                Log.d("JSON", "fail");
+            }
+        }).execAsync();
         LoginButton loginButton = (LoginButton) view.findViewById(R.id.login_button);
         // If using in a fragment
         loginButton.setFragment(this);
@@ -66,9 +77,9 @@ public class FragmentA extends Fragment {
                             public void onCompleted(GraphResponse response)
                             {
                                 JSONObject x = response.getJSONObject();
-                                if(x.has("data"))
                                     try {
                                     JSONArray f = x.getJSONArray("data");
+                                        if(x.has("data"))
                                     if(f == null) return;
                                     int le = f.length();
                                     for(int i = 0; i < le; i++)
@@ -91,7 +102,7 @@ public class FragmentA extends Fragment {
                         })
                         );
                 Bundle parameters = new Bundle();
-                parameters.putString("fields", "name,email");
+                parameters.putString("fields", "name");
                 request.setParameters(parameters);
                 request.executeAsync();
                 Log.d("FLOGIN","SUCCESS");
@@ -194,3 +205,4 @@ class PagingRequestCallback implements GraphRequest.Callback {
         }
     }
 }
+
