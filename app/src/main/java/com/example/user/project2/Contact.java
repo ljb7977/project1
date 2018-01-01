@@ -1,4 +1,4 @@
-package com.example.user.address2;
+package com.example.user.project2;
 
 /**
  * Created by user on 2017-12-28.

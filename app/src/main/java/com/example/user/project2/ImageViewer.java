@@ -1,4 +1,4 @@
-package com.example.user.address2;
+package com.example.user.project2;
 
 import android.content.Intent;
 import android.graphics.Bitmap;

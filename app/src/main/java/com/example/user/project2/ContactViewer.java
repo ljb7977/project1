@@ -1,11 +1,11 @@
-package com.example.user.address2;
+package com.example.user.project2;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-public class Address2 extends AppCompatActivity {
+public class ContactViewer extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,5 +25,4 @@ public class Address2 extends AppCompatActivity {
         numberTextView.setText(number);
         emailTextView.setText(email);
     }
-
 }

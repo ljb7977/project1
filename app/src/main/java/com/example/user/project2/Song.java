@@ -1,4 +1,4 @@
-package com.example.user.address2;
+package com.example.user.project2;
 
 public class Song {
     String id, title, artist, data, albumCover;
