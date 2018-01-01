@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -92,6 +93,15 @@ public class FragmentB extends Fragment {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 callImageViewer(position);
             }
+        });
+
+        FloatingActionButton floatingActionButton = view.findViewById(R.id.sync_button);
+        floatingActionButton.setOnClickListener(
+                new FloatingActionButton.OnClickListener(){
+                    public void onClick(View v){
+                        ImageListFetchTask task = new ImageListFetchTask();
+                        task.execute("http://143.248.36.226:3000/photos"); //TODO url
+                    }
         });
 
         return view;

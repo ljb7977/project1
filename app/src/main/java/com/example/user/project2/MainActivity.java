@@ -1,15 +1,8 @@
 package com.example.user.project2;
 
 import android.Manifest;
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.database.ContentObserver;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -22,28 +15,10 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
-    public static final String AUTHORITY = "com.example.user.project2.datasync.provider";
-    public static final String ACCOUNT_TYPE = "com.android.example.datasync"; //Todo: need to specify domain
-
-    public static final String ACCOUNT = "account";
-
-    Account mAccount;
-
-    public static final String SCHEME = "content://";
-    public static final String TABLE_PATH = "data_table";
-
-    Uri mUri;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mAccount = CreateSyncAccount(this);
-
-        mUri = new Uri.Builder().scheme(SCHEME).authority(AUTHORITY).path(TABLE_PATH).build();
-        TableObserver observer = new TableObserver(new Handler());
-        getContentResolver().registerContentObserver(mUri, true, observer);
 
         // Initializing the TabLayout
         tabLayout = findViewById(R.id.tabLayout);
@@ -93,13 +68,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             myApp.loadData();
         }
-
-        Bundle settingsBundle = new Bundle();
-        settingsBundle.putBoolean(
-                ContentResolver.SYNC_EXTRAS_MANUAL, true);
-        settingsBundle.putBoolean(
-                ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-        ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
     }
 
     @Override
@@ -112,34 +80,6 @@ public class MainActivity extends AppCompatActivity {
                         grantResults[1] == PackageManager.PERMISSION_GRANTED){
                     myApp.loadData();
                 }
-        }
-    }
-
-    public static Account CreateSyncAccount(Context context){
-        Account newAccount = new Account(ACCOUNT, ACCOUNT_TYPE);
-
-        AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
-
-        if(accountManager.addAccountExplicitly(newAccount, null, null)){
-            return newAccount;
-        } else {
-            return null;
-        }
-    }
-
-
-    public class TableObserver extends ContentObserver {
-        public TableObserver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            onChange(selfChange, null);
-        }
-        @Override
-        public void onChange(boolean selfChange, Uri changeUri){
-            ContentResolver.requestSync(mAccount, AUTHORITY, null);
         }
     }
 }

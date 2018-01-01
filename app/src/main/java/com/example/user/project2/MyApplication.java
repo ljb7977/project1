@@ -2,6 +2,8 @@ package com.example.user.project2;
 
 import android.app.Application;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
@@ -11,28 +13,64 @@ import java.util.ArrayList;
 
 public class MyApplication extends Application {
 
+    private static MyApplication instance;
+
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;
 
+    public ArrayList<Photo> newImages;
+
+    public SQLiteDatabase imageDB = null;
+
+    public static MyApplication getApplication() {
+        return instance;
+    }
+
     @Override
     public void onCreate(){
         super.onCreate();
+        instance = this;
+
         ImgList = new ArrayList<Photo>();
         SongList = new ArrayList<Song>();
         ContactList = new ArrayList<Contact>();
-
     }
 
-    public void loadData()
-    {
+    public void loadData() {
+        /*try{
+            imageDB = SQLiteDatabase.openOrCreateDatabase("images.db", null);
+        } catch (SQLiteException e) {
+            e.printStackTrace();
+        }
+
+        String sqlCreateTable = "CREATE TABLE IF NOT EXISTS IMAGES"+
+                " (UUID TEXT, ID TEXT, CREATED_AT DATE, MODIFIED_AT DATE)";
+        imageDB.execSQL(sqlCreateTable);
+*/
         ImgList = fetchAllImages();
         SongList = fetchAllSongs();
         ContactList = fetchAllContacts();
+
+        newImages = new ArrayList<>();
+
+        /*
+        String sqlSelect = "SELECT * FROM IMAGES WHERE ID = ?";
+
+        for (Photo p : ImgList){
+            Cursor cursor = imageDB.rawQuery(sqlSelect, new String[] {p.id});
+            if(cursor.getCount() == 0){ // new image found
+                newImages.add(p);
+            }
+        }
+        */
+
+        //new ImageListFetchTask().execute(); //TODO url
     }
 
     private ArrayList<Photo> fetchAllImages() {
-        String[] projection = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
+        String[] projection = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATE_ADDED, MediaStore.Images.Media.DATE_MODIFIED};
         String selection = MediaStore.Images.Media.DATA + " like ? ";
 
         Cursor imageCursor = getApplicationContext().getContentResolver().query(
@@ -46,14 +84,18 @@ public class MyApplication extends Application {
         assert imageCursor != null;
         int dataColumnIndex = imageCursor.getColumnIndex(projection[0]);
         int idColumnIndex = imageCursor.getColumnIndex(projection[1]);
+        int dateAddedIndex = imageCursor.getColumnIndex(projection[2]);
+        int dateModifiedIndex = imageCursor.getColumnIndex(projection[3]);
 
         while(imageCursor.moveToNext()){
             String filePath = imageCursor.getString(dataColumnIndex);
             String imageId = imageCursor.getString(idColumnIndex);
+            String dateAdded = imageCursor.getString(dateAddedIndex);
+            String dateModified = imageCursor.getString(dateModifiedIndex);
 
-            Uri thumbnailUri = createThumbnails(imageId);
+            String thumbnailPath = createThumbnails(imageId).toString();
 
-            Photo photo = new Photo(thumbnailUri, filePath);
+            Photo photo = new Photo(imageId, dateAdded, dateModified, thumbnailPath, filePath);
             result.add(photo);
             Log.i("fetchImages", filePath);
         }
