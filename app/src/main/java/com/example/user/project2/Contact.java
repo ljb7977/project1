@@ -5,7 +5,7 @@ package com.example.user.project2;
  */
 
 public class Contact {
-    String name, number, email;
+    String name, number, email, id;
     Contact(String name, String number, String email){
         this.name = name;
         this.number = number;

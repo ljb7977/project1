@@ -152,13 +152,11 @@ public class FragmentA extends Fragment {
             adapter.addItem(c.name, c.number, c.email);
         }
 
-        new HTTPJSONRequest("http://143.248.36.226:3000/contacts", "GET").setHandler(new HTTPJSONRequestHandler() {
+        new HTTPJSONRequest("http://143.248.36.226:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
             @Override
             public void on_response(JSONObject response) {
                 try {
                     JSONArray f = response.getJSONArray("content");
-                    if(response.has("data"))
-                        if(f == null) return;
                     int le = f.length();
                     for(int i = 0; i < le; i++)
                     {

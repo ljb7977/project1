@@ -1,12 +1,20 @@
 package com.example.user.project2;
 
 import android.app.Application;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.util.JsonReader;
+import android.util.JsonToken;
+import android.util.JsonWriter;
 import android.util.Log;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 public class MyApplication extends Application {
@@ -180,12 +188,87 @@ public class MyApplication extends Application {
     }
     private ArrayList<Contact> getSavedContacts()
     {
-        // TODO: get saved contact from json file
-        return new ArrayList<>();
+        ArrayList<Contact> retval = new ArrayList<>();
+        String filename = "saved.json";
+        try{
+            JsonReader reader = new JsonReader(new InputStreamReader(openFileInput(filename)));
+            reader.beginArray();
+            while(reader.hasNext())
+            {
+                reader.beginObject();
+                String name = null, email = null, phone = null, id = null;
+                while(reader.hasNext())
+                {
+                    String key = reader.nextName();
+                    if(key.equals("name"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            name = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if (key.equals("email"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            email = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if(key.equals("phone"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            phone = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if(key.equals("id"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            id = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else
+                    {
+                        reader.skipValue();
+                    }
+                }
+                Contact x = new Contact(name, email, phone);
+                x.id = id;
+                retval.add(x);
+                reader.endObject();
+            }
+            reader.endArray();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return retval;
     }
     private void saveContacts(ArrayList<Contact> lists)
     {
-        //TODO: save contact to json file
+        String filename = "saved.json";
+        try{
+            JsonWriter writer = new JsonWriter(new OutputStreamWriter(openFileOutput(filename, Context.MODE_PRIVATE)));
+            writer.beginArray();
+            for(Contact person : lists)
+            {
+                writer.beginObject();
+                writer.name("name").value(person.name);
+                writer.name("phone").value(person.number);
+                writer.name("email").value(person.email);
+                writer.name("id").value(person.id);
+                writer.endObject();
+            }
+            writer.endArray();
+            writer.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private ArrayList<Contact> getLocalContacts(){
