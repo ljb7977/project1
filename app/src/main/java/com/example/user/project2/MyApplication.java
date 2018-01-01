@@ -47,8 +47,6 @@ public class MyApplication extends Application {
         int dataColumnIndex = imageCursor.getColumnIndex(projection[0]);
         int idColumnIndex = imageCursor.getColumnIndex(projection[1]);
 
-        Log.i("fetchImages", "start");
-
         while(imageCursor.moveToNext()){
             String filePath = imageCursor.getString(dataColumnIndex);
             String imageId = imageCursor.getString(idColumnIndex);

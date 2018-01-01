@@ -156,7 +156,6 @@ public class FragmentA extends Fragment {
         AssetManager am = getResources().getAssets();
         InputStream is;
         try{
-            //is = am.open("address.json");
             is = getResources().openRawResource(R.raw.address);
             int size = is.available();
             byte[] buffer = new byte[size];
