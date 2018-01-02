@@ -70,6 +70,23 @@ public class ListViewAdapter extends BaseAdapter {
 
         listViewItemList.add(item);
     }
+
+    public void removeItem(int id)
+    {
+        if(id >= 0)
+            listViewItemList.remove(id);
+    }
+
+    public void changeItem(int id, String name, String number, String email)
+    {
+        if(id >= 0)
+        {
+            ListViewItem cur = listViewItemList.get(id);
+            cur.setName(name);
+            cur.setNumber(number);
+            cur.setEmail(email);
+        }
+    }
 }
 
 

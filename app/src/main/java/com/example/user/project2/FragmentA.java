@@ -1,5 +1,8 @@
 package com.example.user.project2;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
@@ -34,6 +37,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static android.app.Activity.RESULT_OK;
+
 public class FragmentA extends Fragment {
     String str;
     ArrayList<Contact> ContactList;
@@ -43,96 +48,18 @@ public class FragmentA extends Fragment {
     FloatingActionButton expandButton;
     FloatingActionButton facebookButton;
     FloatingActionButton addButton;
-    FloatingActionButton removeButton;
+    FloatingActionButton syncButton;
+    static final short REQUEST_CONTACTINFO = 0x721;
+    static final int RETURN_OK = 0x722;
+    static final int RETURN_EDIT = 0x723;
+    static final int RETURN_DELETE = 0x724;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.tab_fragment1, container, false);
-        expandButton = view.findViewById(R.id.expand_button);
-        facebookButton = view.findViewById(R.id.facebook_button);
-        facebookButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                collapseButtons();
-                if(AccessToken.getCurrentAccessToken() != null)
-                {
-                    LoginManager.getInstance().logOut();
-                }
-                else {
-                    LoginManager.getInstance().logInWithReadPermissions(FragmentA.this, Arrays.asList("user_friends"));
-                }
-            }
-        });
-
-        addButton = view.findViewById(R.id.add_button);
-        removeButton = view.findViewById(R.id.remove_button);
-        setButtonsInvisible(View.GONE);
-        facebookButton.setVisibility(View.GONE);
-        expandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(buttonExpanded)
-                {
-                    collapseButtons();
-                }
-                else
-                {
-                    expandButtons();
-                }
-            }
-        });
-        ListView listview = view.findViewById(R.id.listview);
-        callbackManager = CallbackManager.Factory.create();
-
-
-        FacebookSdk.addLoggingBehavior(LoggingBehavior.REQUESTS);
-
-        if(AccessToken.getCurrentAccessToken() != null)
-        {
-            executeFacebookContactTask(AccessToken.getCurrentAccessToken());
-        }
-        Log.d("FLOGIN","BEFORE");
-        // Callback registration
-        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                AccessToken token = loginResult.getAccessToken();
-                executeFacebookContactTask(token);
-
-                Log.d("FLOGIN","SUCCESS");
-                // App code
-            }
-
-            @Override
-            public void onCancel() {
-                Log.d("FLOGIN","FAIL");
-                // App code
-            }
-
-            @Override
-            public void onError(FacebookException exception) {
-                Log.d("FLOGIN",exception.toString());
-                // App code
-            }
-        });
-        adapter = new ListViewAdapter();
-
-        MyApplication myApp = (MyApplication) getActivity().getApplication();
-        ContactList = myApp.getContactList();
-
-        listview.setAdapter(adapter);
-
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView parent, View v, int position, long id){
-                Intent intent = new Intent(getActivity(), ContactViewer.class);
-                ListViewItem item = (ListViewItem)adapter.getItem(position);
-                intent.putExtra("name", item.getName());
-                intent.putExtra("number", item.getNumber());
-                intent.putExtra("email", item.getEmail());
-                startActivity(intent);
-            }
-        });
+        createActionButtons(view);
+        registerFacebookTask();
+        setupListView(view.findViewById(R.id.listview));
 
         boolean s = readJson();
         if(s){
@@ -196,6 +123,67 @@ public class FragmentA extends Fragment {
         return view;
     }
 
+    public void setupListView(View view)
+    {
+        if(view == null) return;
+        ListView listview = (ListView)view;
+        adapter = new ListViewAdapter();
+
+        MyApplication myApp = (MyApplication) getActivity().getApplication();
+        ContactList = myApp.getContactList();
+
+        listview.setAdapter(adapter);
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView parent, View v, int position, long id){
+                Intent intent = new Intent(getActivity(), ContactViewer.class);
+                ListViewItem item = (ListViewItem)adapter.getItem(position);
+                intent.putExtra("name", item.getName());
+                intent.putExtra("number", item.getNumber());
+                intent.putExtra("email", item.getEmail());
+                intent.putExtra("id", position);
+                startActivityForResult(intent, REQUEST_CONTACTINFO);
+            }
+        });
+
+    }
+    public void createActionButtons(View view)
+    {
+        expandButton = view.findViewById(R.id.expand_button);
+        facebookButton = view.findViewById(R.id.facebook_button);
+        facebookButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                collapseButtons();
+                if(AccessToken.getCurrentAccessToken() != null)
+                {
+                    LoginManager.getInstance().logOut();
+                }
+                else {
+                    LoginManager.getInstance().logInWithReadPermissions(FragmentA.this, Arrays.asList("user_friends"));
+                }
+            }
+        });
+
+        addButton = view.findViewById(R.id.add_button);
+        syncButton = view.findViewById(R.id.sync_button);
+        setButtonsInvisible(View.GONE);
+        facebookButton.setVisibility(View.GONE);
+        expandButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(buttonExpanded)
+                {
+                    collapseButtons();
+                }
+                else
+                {
+                    expandButtons();
+                }
+            }
+        });
+    }
+
     public void collapseButtons()
     {
         setButtonsInvisible(View.GONE);
@@ -214,10 +202,42 @@ public class FragmentA extends Fragment {
             facebookButton.setVisibility(visibility);
         if(addButton != null)
             addButton.setVisibility(visibility);
-        if(removeButton != null)
-            removeButton.setVisibility(visibility);
+        if(syncButton != null)
+            syncButton.setVisibility(visibility);
 
     }
+
+    public void registerFacebookTask()
+    {
+
+        callbackManager = CallbackManager.Factory.create();
+        FacebookSdk.addLoggingBehavior(LoggingBehavior.REQUESTS);
+
+        if(AccessToken.getCurrentAccessToken() != null)
+        {
+            executeFacebookContactTask(AccessToken.getCurrentAccessToken());
+        }
+        // Callback registration
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                AccessToken token = loginResult.getAccessToken();
+                executeFacebookContactTask(token);
+                // App code
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                // App code
+            }
+        });
+    }
+
     public boolean readJson(){
         AssetManager am = getResources().getAssets();
         InputStream is;
@@ -236,9 +256,41 @@ public class FragmentA extends Fragment {
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(callbackManager != null)
-            callbackManager.onActivityResult(requestCode, resultCode, data);
-        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_CONTACTINFO)
+        {
+            if(resultCode == RESULT_OK)
+            {
+                Log.d("FRAGA", "OK");
+                switch(data.getIntExtra("result", -1))
+                {
+                    case -1:
+                        break;
+                    case RETURN_OK:
+                        break;
+                    case RETURN_EDIT:
+                        adapter.changeItem(
+                                data.getIntExtra("id", -1),
+                                data.getStringExtra("name"),
+                                data.getStringExtra("number"),
+                                data.getStringExtra("email"));
+                        break;
+                    case RETURN_DELETE:
+                        adapter.removeItem(data.getIntExtra("id", -1));
+                        adapter.notifyDataSetChanged();
+                        break;
+                }
+            }
+            else
+            {
+                Log.d("FRAGA", "CANCEL");
+            }
+
+        }
+        else {
+            if (callbackManager != null)
+                callbackManager.onActivityResult(requestCode, resultCode, data);
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     public void executeFacebookContactTask(AccessToken token)

@@ -22,13 +22,15 @@ public class MyApplication extends Application {
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;
+    public ArrayList<Contact> FacebookContactList;
 
     @Override
     public void onCreate(){
         super.onCreate();
-        ImgList = new ArrayList<Photo>();
-        SongList = new ArrayList<Song>();
-        ContactList = new ArrayList<Contact>();
+        ImgList = new ArrayList<>();
+        SongList = new ArrayList<>();
+        ContactList = new ArrayList<>();
+        FacebookContactList = new ArrayList<>();
 
     }
 
