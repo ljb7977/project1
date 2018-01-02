@@ -1,6 +1,7 @@
 package com.example.user.project2;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -19,14 +21,14 @@ public class HTTPJSONRequest {
     HttpURLConnection con;
     String url;
     String option;
-    byte[] data;
+    String data;
     HTTPJSONRequestHandler handler;
     public HTTPJSONRequest(String url, String option)
     {
         this.url = url;
         this.option = option;
     }
-    public HTTPJSONRequest(String url, String option, byte[] data)
+    public HTTPJSONRequest(String url, String option, String data)
     {
         this.url = url;
         this.option = option;
@@ -46,14 +48,19 @@ public class HTTPJSONRequest {
                 try {
                     URL target = new URL(url);
                     con = (HttpURLConnection) target.openConnection();
+                    con.setConnectTimeout(10000);
+                    con.setReadTimeout(10000);
                     con.setRequestMethod(option);
+                    con.setRequestProperty("Content-Type", "application/json");
+
                     if (data != null) {
                         con.setDoOutput(true);
-                        OutputStream os = con.getOutputStream();
-                        os.write(data);
-                        os.flush();
-                        os.close();
+                        OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
+                        osw.write(data);
+                        osw.flush();
+                        osw.close();
                     }
+                    //Log.d("REQ", Integer.toString(con.getResponseCode()));
                     DataInputStream x = new DataInputStream(con.getInputStream());
                     byte[] response = new byte[con.getContentLength()];
                     x.read(response, 0, con.getContentLength());
@@ -62,6 +69,7 @@ public class HTTPJSONRequest {
                 }
                 catch(IOException | JSONException e)
                 {
+                    e.printStackTrace();
                     return null;
                 }
             }

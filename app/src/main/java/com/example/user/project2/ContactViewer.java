@@ -73,7 +73,7 @@ public class ContactViewer extends AppCompatActivity {
     void createDeleteDialog()
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(this );
-        builder.setMessage("Delete Contact?");
+        builder.setMessage("Delete Contact? (Server data will be deleted)");
         builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {

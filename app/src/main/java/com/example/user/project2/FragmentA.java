@@ -166,10 +166,11 @@ public class FragmentA extends Fragment {
             @Override
             public void onClick(View view) {
                 collapseButtons();
-                new HTTPJSONRequest("http://143.248.36.226:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
+                new HTTPJSONRequest("http://13.125.98.75:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
                     @Override
                     public void on_response(JSONObject response) {
                         try {
+                            ArrayList<Contact> serverList = new ArrayList<>();
                             JSONArray f = response.getJSONArray("content");
                             int le = f.length();
                             for(int i = 0; i < le; i++)
@@ -180,14 +181,22 @@ public class FragmentA extends Fragment {
                                     String name = "";
                                     String number = "";
                                     String email = "";
+                                    String uuid = "";
                                     if(fi.has("name"))
                                         name = fi.getString("name");
                                     if(fi.has("phone"))
                                         number = fi.getString("phone");
                                     if(fi.has("email"))
                                         email = fi.getString("email");
-                                    if(contactList != null)
-                                        contactList.add(new Contact(name, number, email));
+                                    if(fi.has("uuid"))
+                                        uuid = fi.getString("uuid");
+                                    serverList.add(new Contact(name, number, email, uuid));
+                                }
+                            }
+                            ArrayList<Contact> syncUpList = makeSync(contactList, serverList);
+                            if(syncUpList != null) {
+                                for (Contact i : syncUpList) {
+                                    uploadToSync(i);
                                 }
                             }
                             Toast.makeText(getActivity(), "sync finished", Toast.LENGTH_SHORT).show();
@@ -202,7 +211,7 @@ public class FragmentA extends Fragment {
 
                     @Override
                     public void on_fail() {
-                        Log.d("JSON", "fail");
+                        //Log.d("JSON", "fail");
                     }
                 }).execAsync();
             }
@@ -224,6 +233,93 @@ public class FragmentA extends Fragment {
         });
     }
 
+    public ArrayList<Contact> makeSync(ArrayList<Contact> orig, ArrayList<Contact> patch)
+    {
+        ArrayList<Contact> retval = new ArrayList<>();
+        if(patch != null)
+        {
+            for(Contact i : patch)
+            {
+                if(orig.contains(i))
+                {
+                    Contact toSync = orig.get(orig.indexOf(i));
+                    toSync.id = i.id;
+                    if(!(toSync.email.equals(i.email) && toSync.number.equals(i.number)))
+                    {
+                        retval.add(toSync);
+                    }
+                }
+                else
+                {
+                    orig.add(i);
+                }
+            }
+        }
+        for(Contact i : orig)
+        {
+            if(!patch.contains(i) && !retval.contains(i))
+            {
+                retval.add(i);
+            }
+        }
+        return retval;
+    }
+
+    public void uploadToSync(Contact m)
+    {
+        boolean isNullId = (m.id == null) || (m.id.equals(""));
+        JSONObject ob = m.toJSONObject(!isNullId);
+        String option;
+        String url = getString(R.string.server_url);
+        String dest;
+        if(!isNullId) {
+            option = "PUT";
+            dest = url + "/contacts/" + m.id;
+        }
+        else
+        {
+            option = "POST";
+            dest = url + "/contacts";
+        }
+        JSONArray content = new JSONArray();
+        content.put(ob);
+        JSONObject head = new JSONObject();
+        try {
+            head.put("content", content);
+        } catch (JSONException e) {
+            return;
+        }
+        new HTTPJSONRequest(dest,option, head.toString()).setHandler(new HTTPJSONRequestHandler() {
+            @Override
+            public void on_response(JSONObject response) {
+                //Log.d("RES", response.toString());
+            }
+
+            @Override
+            public void on_fail() {
+               // Log.d("JSON", "fail");
+            }
+        }).execAsync();
+    }
+
+    public void uploadToDel(Contact m)
+    {
+        boolean isNullId = (m.id == null) || (m.id.equals(""));
+        if(isNullId) return;
+        String option = "DELETE";
+        String url = getString(R.string.server_url) + "/contacts/" + m.id;
+        new HTTPJSONRequest(url,option).setHandler(new HTTPJSONRequestHandler() {
+            @Override
+            public void on_response(JSONObject response) {
+                //Log.d("RES", response.toString());
+            }
+
+            @Override
+            public void on_fail() {
+                //Log.d("JSON", "fail");
+            }
+        }).execAsync();
+    }
     public void collapseButtons()
     {
         setButtonsInvisible(View.GONE);
@@ -291,16 +387,22 @@ public class FragmentA extends Fragment {
                     case -1:
                         break;
                     case RETURN_ADD:
-                        addContactList(
-                                new Contact(
-                                        data.getStringExtra("name"),
-                                        data.getStringExtra("number"),
-                                        data.getStringExtra("email"))
-                        );
-                        adapter.notifyDataSetChanged();
+                        if(data.getStringExtra("name").length() == 0)
+                        {
+                            Toast.makeText(getActivity(), "Add fail : Name must not empty", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            addContactList(
+                                    new Contact(
+                                            data.getStringExtra("name"),
+                                            data.getStringExtra("number"),
+                                            data.getStringExtra("email"))
+                            );
+                            adapter.notifyDataSetChanged();
+                        }
                         break;
                     case RETURN_OK:
-                        Log.d("FRAGA", "OK");
+                        //Log.d("FRAGA", "OK");
                         break;
                     case RETURN_EDIT:
                         changeContactList(
@@ -319,7 +421,7 @@ public class FragmentA extends Fragment {
             }
             else
             {
-                Log.d("FRAGA", "CANCEL");
+                //Log.d("FRAGA", "CANCEL");
             }
 
         }
@@ -342,8 +444,11 @@ public class FragmentA extends Fragment {
     {
         if(id >= 0)
         {
-            if(contactList != null)
+            if(contactList != null) {
+                Contact toDel = contactList.get(id);
+                uploadToDel(toDel);
                 contactList.remove(id);
+            }
         }
     }
 
