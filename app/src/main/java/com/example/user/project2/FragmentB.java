@@ -85,7 +85,7 @@ public class FragmentB extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("onCREATEVIEW", "!!!");
+
         View view = inflater.inflate(R.layout.tab_fragment2, container, false);
         gridview = view.findViewById(R.id.gridview);
 
@@ -104,7 +104,7 @@ public class FragmentB extends Fragment {
                 new FloatingActionButton.OnClickListener(){
                     public void onClick(View v){
                         ImageListFetchTask task = new ImageListFetchTask(getContext());
-                        task.execute(); //TODO url
+                        task.execute();
                     }
         });
 

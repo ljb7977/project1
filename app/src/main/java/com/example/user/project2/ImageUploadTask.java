@@ -29,7 +29,7 @@ public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
     private Context mContext;
     public static final String TAG = "UploadTask";
 
-    public String upload_url = "/photos"; //TODO URL;
+    public String upload_url = "/photos";
 
     public ImageUploadTask (Context context){
         mContext = context;
@@ -115,7 +115,7 @@ public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
 
                 SQLiteDatabase db = new DBHelper(mContext).getWritableDatabase();
                 ContentValues values = new ContentValues();
-                values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, uuid); //TODO UUID
+                values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, uuid);
                 values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID, photo.id);
                 values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT, photo.date_added);
                 values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT, photo.date_modified);

@@ -496,8 +496,6 @@ public class FragmentA extends Fragment {
         request.setParameters(parameters);
         request.executeAsync();
     }
-
-
 }
 
 class PagingRequestCallback implements GraphRequest.Callback {

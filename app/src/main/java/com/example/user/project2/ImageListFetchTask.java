@@ -42,7 +42,7 @@ public class ImageListFetchTask extends AsyncTask<String[], Integer, String> {
 
     private Context mContext;
     public static final String TAG = "ImageListFetchTask";
-    public final String url_str = "/photos"; //TODO URL
+    public final String url_str = "/photos";
 
     public ImageListFetchTask (Context context){
         mContext = context;
