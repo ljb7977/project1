@@ -1,6 +1,7 @@
 package com.example.user.project2;
 
 import android.app.Application;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -9,17 +10,18 @@ import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import java.nio.InvalidMarkException;
+import java.sql.SQLData;
 import java.util.ArrayList;
 
 public class MyApplication extends Application {
-
     private static MyApplication instance;
 
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;
 
-    public ArrayList<Photo> newImages;
+    public ArrayList<Photo> newImages, prevImages;
 
     public SQLiteDatabase imageDB = null;
 
@@ -38,32 +40,67 @@ public class MyApplication extends Application {
     }
 
     public void loadData() {
-        /*try{
-            imageDB = SQLiteDatabase.openOrCreateDatabase("images.db", null);
-        } catch (SQLiteException e) {
-            e.printStackTrace();
-        }
+        DBHelper mDBHelper = new DBHelper(getApplicationContext());
 
-        String sqlCreateTable = "CREATE TABLE IF NOT EXISTS IMAGES"+
-                " (UUID TEXT, ID TEXT, CREATED_AT DATE, MODIFIED_AT DATE)";
-        imageDB.execSQL(sqlCreateTable);
-*/
         ImgList = fetchAllImages();
         SongList = fetchAllSongs();
         ContactList = fetchAllContacts();
 
         newImages = new ArrayList<>();
+        prevImages = new ArrayList<>();
+
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+
+        String[] projection = {
+                ImageDBColumn.ImageEntry.COLUMN_NAME_UUID,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT,
+        };
 
         /*
-        String sqlSelect = "SELECT * FROM IMAGES WHERE ID = ?";
+        Cursor cursor2 = db.query(
+                ImageDBColumn.ImageEntry.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT + " DESC"
+        );
+        while(cursor2.moveToNext()){
+            Log.d("UUID", cursor2.getString(0));
+            Log.d("IMAGEID", cursor2.getString(1));
+            Log.d("CREATED_AT", cursor2.getString(2));
+            Log.d("MODIFIED_AT", cursor2.getString(3));
+        }
+        */
+
+        String selection = ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID + " = ? ";
 
         for (Photo p : ImgList){
-            Cursor cursor = imageDB.rawQuery(sqlSelect, new String[] {p.id});
+            Cursor cursor = db.query(ImageDBColumn.ImageEntry.TABLE_NAME,
+                    projection,
+                    selection,
+                    new String[]{p.id},
+                    null,
+                    null,
+                    null);
             if(cursor.getCount() == 0){ // new image found
                 newImages.add(p);
             }
+            cursor.close();
         }
-        */
+
+        for (Photo p : newImages){
+            Log.i("NEWIMAGES", p.image);
+            ContentValues values = new ContentValues();
+            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, "uuid"); //TODO UUID
+            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID, p.id);
+            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT, p.date_added);
+            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT, p.date_modified);
+            db.insert(ImageDBColumn.ImageEntry.TABLE_NAME, null, values);
+        }
 
         //new ImageListFetchTask().execute(); //TODO url
     }
