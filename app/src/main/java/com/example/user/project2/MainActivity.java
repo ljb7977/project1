@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         mUri = new Uri.Builder().scheme(SCHEME).authority(AUTHORITY).path(TABLE_PATH).build();
         TableObserver observer = new TableObserver(new Handler());
-        getContentResolver().registerContentObserver(mUri, true, observer);
+        //getContentResolver().registerContentObserver(mUri, true, observer);
 
         // Initializing the TabLayout
         tabLayout = findViewById(R.id.tabLayout);

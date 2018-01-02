@@ -10,25 +10,59 @@
         android:id="@+id/listview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
         android:paddingBottom="0dp"
+        android:paddingTop="24dp"
 
-        app:layout_constraintBottom_toTopOf="@+id/login_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/login_button"
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/expand_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_gravity="center_vertical|center"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listview" />
+        app:srcCompat="@android:color/transparent" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/facebook_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:clickable="true"
+        app:layout_constraintBottom_toTopOf="@+id/expand_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@color/colorAccent" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/remove_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:clickable="true"
+        app:layout_constraintBottom_toTopOf="@+id/facebook_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@color/colorAccent" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/add_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:clickable="true"
+        app:layout_constraintBottom_toTopOf="@+id/remove_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@color/colorAccent" />
 
 </android.support.constraint.ConstraintLayout>

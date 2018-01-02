@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,23 +39,57 @@ public class FragmentA extends Fragment {
     ArrayList<Contact> ContactList;
     CallbackManager callbackManager;
     ListViewAdapter adapter;
+    boolean  buttonExpanded = false;
+    FloatingActionButton expandButton;
+    FloatingActionButton facebookButton;
+    FloatingActionButton addButton;
+    FloatingActionButton removeButton;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.tab_fragment1, container, false);
+        expandButton = view.findViewById(R.id.expand_button);
+        facebookButton = view.findViewById(R.id.facebook_button);
+        facebookButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                collapseButtons();
+                if(AccessToken.getCurrentAccessToken() != null)
+                {
+                    LoginManager.getInstance().logOut();
+                }
+                else {
+                    LoginManager.getInstance().logInWithReadPermissions(FragmentA.this, Arrays.asList("user_friends"));
+                }
+            }
+        });
 
+        addButton = view.findViewById(R.id.add_button);
+        removeButton = view.findViewById(R.id.remove_button);
+        setButtonsInvisible(View.GONE);
+        facebookButton.setVisibility(View.GONE);
+        expandButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(buttonExpanded)
+                {
+                    collapseButtons();
+                }
+                else
+                {
+                    expandButtons();
+                }
+            }
+        });
         ListView listview = view.findViewById(R.id.listview);
         callbackManager = CallbackManager.Factory.create();
 
-        LoginButton loginButton = (LoginButton) view.findViewById(R.id.login_button);
-        // If using in a fragment
-        loginButton.setFragment(this);
-        loginButton.setReadPermissions(Arrays.asList("user_friends"));
+
         FacebookSdk.addLoggingBehavior(LoggingBehavior.REQUESTS);
 
         if(AccessToken.getCurrentAccessToken() != null)
         {
-            executeFacebookContactTask(AccessToken.getCurrentAccessToken() );
+            executeFacebookContactTask(AccessToken.getCurrentAccessToken());
         }
         Log.d("FLOGIN","BEFORE");
         // Callback registration
@@ -161,6 +196,28 @@ public class FragmentA extends Fragment {
         return view;
     }
 
+    public void collapseButtons()
+    {
+        setButtonsInvisible(View.GONE);
+        buttonExpanded = false;
+    }
+
+    public void expandButtons()
+    {
+        setButtonsInvisible(View.VISIBLE);
+        buttonExpanded = true;
+    }
+
+    public void setButtonsInvisible(int visibility)
+    {
+        if(facebookButton != null)
+            facebookButton.setVisibility(visibility);
+        if(addButton != null)
+            addButton.setVisibility(visibility);
+        if(removeButton != null)
+            removeButton.setVisibility(visibility);
+
+    }
     public boolean readJson(){
         AssetManager am = getResources().getAssets();
         InputStream is;
@@ -225,6 +282,8 @@ public class FragmentA extends Fragment {
         request.setParameters(parameters);
         request.executeAsync();
     }
+
+
 }
 
 class PagingRequestCallback implements GraphRequest.Callback {
