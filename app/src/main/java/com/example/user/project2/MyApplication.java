@@ -21,7 +21,7 @@ public class MyApplication extends Application {
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;
 
-    public ArrayList<Photo> newImages, prevImages;
+    public ArrayList<Photo>  prevImages;
 
     public SQLiteDatabase imageDB = null;
 
@@ -40,16 +40,13 @@ public class MyApplication extends Application {
     }
 
     public void loadData() {
-        DBHelper mDBHelper = new DBHelper(getApplicationContext());
+
 
         ImgList = fetchAllImages();
         SongList = fetchAllSongs();
         ContactList = fetchAllContacts();
 
-        newImages = new ArrayList<>();
         prevImages = new ArrayList<>();
-
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
 
         String[] projection = {
                 ImageDBColumn.ImageEntry.COLUMN_NAME_UUID,
@@ -75,7 +72,26 @@ public class MyApplication extends Application {
             Log.d("MODIFIED_AT", cursor2.getString(3));
         }
 */
+        ArrayList<Photo> newImages = findNewImages();
 
+        for (Photo p : newImages){
+            Log.i("NEWIMAGES", p.image);
+            new ImageUploadTask(getApplicationContext()).execute(p);
+        }
+    }
+
+    public ArrayList<Photo> findNewImages() {
+        String[] projection = {
+                ImageDBColumn.ImageEntry.COLUMN_NAME_UUID,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT,
+                ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT,
+        };
+
+        ArrayList<Photo> newImages = new ArrayList<>();
+
+        DBHelper mDBHelper = new DBHelper(getApplicationContext());
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         String selection = ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID + " = ? ";
 
         for (Photo p : ImgList){
@@ -91,11 +107,7 @@ public class MyApplication extends Application {
             }
             cursor.close();
         }
-
-        for (Photo p : newImages){
-            Log.i("NEWIMAGES", p.image);
-            new ImageUploadTask(getApplicationContext()).execute(p);
-        }
+        return newImages;
     }
 
     private ArrayList<Photo> fetchAllImages() {
