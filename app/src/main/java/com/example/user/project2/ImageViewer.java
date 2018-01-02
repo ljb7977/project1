@@ -107,14 +107,18 @@ public class ImageViewer extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
+        View menuItemView;
         switch(item.getItemId()){
             case R.id.action_delete_button:
-                View menuItemView = findViewById(R.id.action_delete_button);
+                menuItemView = findViewById(R.id.action_delete_button);
                 PopupMenu popupMenu = new PopupMenu(this, menuItemView);
                 popupMenu.inflate(R.menu.imageview_menu);
                 popupMenu.setOnMenuItemClickListener(this);
                 popupMenu.show();
                 return true;
+            case R.id.action_upload_button:
+                Photo p = ((MyApplication) getApplication()).getImgList().get(index);
+                new ImageUploadTask(this).execute(p);
             default:
                 return super.onOptionsItemSelected(item);
         }
