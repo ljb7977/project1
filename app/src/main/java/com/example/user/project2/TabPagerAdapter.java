@@ -24,7 +24,7 @@ public class TabPagerAdapter extends FragmentStatePagerAdapter {
                 FragmentA tabFragment1 = new FragmentA();
                 return tabFragment1;
             case 1:
-                FragmentB tabFragment2 = new FragmentB();
+                GalleryFragment tabFragment2 = new GalleryFragment();
                 return tabFragment2;
             case 2:
                 FragmentC tabFragment3 = new FragmentC();

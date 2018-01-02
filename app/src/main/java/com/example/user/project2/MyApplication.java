@@ -21,12 +21,12 @@ import java.util.ArrayList;
 public class MyApplication extends Application {
     private static MyApplication instance;
 
+    public SQLiteDatabase db;
+
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;
     public ArrayList<String> FacebookContactList;
-
-    public ArrayList<Photo>  prevImages;
 
     public static MyApplication getApplication() {
         return instance;
@@ -41,79 +41,15 @@ public class MyApplication extends Application {
         FacebookContactList = new ArrayList<>();
 
         instance = this;
+
+        DBHelper mDBHelper = new DBHelper(getApplicationContext());
+        db = mDBHelper.getWritableDatabase();
     }
 
     public void loadData() {
         ImgList = fetchAllImages();
         SongList = fetchAllSongs();
         ContactList = fetchAllContacts();
-
-        prevImages = new ArrayList<>();
-
-        String[] projection = {
-                ImageDBColumn.ImageEntry.COLUMN_NAME_UUID,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT,
-        };
-
-        DBHelper mDBHelper = new DBHelper(getApplicationContext());
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
-
-        Cursor cursor2 = db.query(
-                ImageDBColumn.ImageEntry.TABLE_NAME,
-                projection,
-                null,
-                null,
-                null,
-                null,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT + " DESC"
-        );
-        while(cursor2.moveToNext()){
-            Log.d("UUID", cursor2.getString(0));
-            Log.d("IMAGEID", cursor2.getString(1));
-            Log.d("CREATED_AT", cursor2.getString(2));
-            Log.d("MODIFIED_AT", cursor2.getString(3));
-        }
-
-        ArrayList<Photo> newImages = findNewImages();
-
-        for (Photo p : newImages){
-            Log.i("NEWIMAGES", p.image);
-            new ImageUploadTask(getApplicationContext()).execute(p);
-        }
-
-        new ImageListFetchTask(getApplicationContext()).execute();
-    }
-
-    public ArrayList<Photo> findNewImages() {
-        String[] projection = {
-                ImageDBColumn.ImageEntry.COLUMN_NAME_UUID,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT,
-                ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT,
-        };
-
-        ArrayList<Photo> newImages = new ArrayList<>();
-
-        DBHelper mDBHelper = new DBHelper(getApplicationContext());
-        SQLiteDatabase db = mDBHelper.getWritableDatabase();
-        String selection = ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID + " = ? ";
-
-        for (Photo p : ImgList){
-            Cursor cursor = db.query(ImageDBColumn.ImageEntry.TABLE_NAME,
-                    projection,
-                    selection,
-                    new String[]{p.id},
-                    null,
-                    null,
-                    null);
-            if(cursor.getCount() == 0){ // new image found
-                newImages.add(p);
-            }
-            cursor.close();
-        }
-        return newImages;
     }
 
     public ArrayList<Photo> fetchAllImages() {

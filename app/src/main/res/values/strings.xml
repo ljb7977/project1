@@ -9,6 +9,4 @@
     <string name="server_url">http://13.125.98.75:3000</string>
     <string name="upload_button">Upload</string>
     <string name="url">"http://13.125.98.75:3000"</string>
-
-
 </resources>
