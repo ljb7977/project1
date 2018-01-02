@@ -49,6 +49,7 @@ public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
                 jsonObject.put("fileName", name);
                 jsonObject.put("createdAt", photo.date_added);
                 jsonObject.put("md5", "md5");
+                jsonObject.put("name", name);
             } catch (JSONException e){
                 e.printStackTrace();
             }

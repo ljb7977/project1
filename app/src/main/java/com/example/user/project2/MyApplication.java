@@ -23,8 +23,6 @@ public class MyApplication extends Application {
 
     public ArrayList<Photo>  prevImages;
 
-    public SQLiteDatabase imageDB = null;
-
     public static MyApplication getApplication() {
         return instance;
     }
@@ -53,7 +51,9 @@ public class MyApplication extends Application {
                 ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT,
         };
 
-        /*
+        DBHelper mDBHelper = new DBHelper(getApplicationContext());
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+
         Cursor cursor2 = db.query(
                 ImageDBColumn.ImageEntry.TABLE_NAME,
                 projection,
@@ -69,13 +69,15 @@ public class MyApplication extends Application {
             Log.d("CREATED_AT", cursor2.getString(2));
             Log.d("MODIFIED_AT", cursor2.getString(3));
         }
-*/
+
         ArrayList<Photo> newImages = findNewImages();
 
         for (Photo p : newImages){
             Log.i("NEWIMAGES", p.image);
             new ImageUploadTask(getApplicationContext()).execute(p);
         }
+
+        new ImageListFetchTask(getApplicationContext()).execute();
     }
 
     public ArrayList<Photo> findNewImages() {
@@ -108,7 +110,7 @@ public class MyApplication extends Application {
         return newImages;
     }
 
-    private ArrayList<Photo> fetchAllImages() {
+    public ArrayList<Photo> fetchAllImages() {
         String[] projection = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID,
                 MediaStore.Images.Media.DATE_ADDED, MediaStore.Images.Media.DATE_MODIFIED};
         String selection = MediaStore.Images.Media.DATA + " like ? ";

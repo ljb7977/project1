@@ -10,6 +10,7 @@ final class ImageDBColumn {
 
     public static class ImageEntry implements BaseColumns {
         public static final String TABLE_NAME = "IMAGES";
+        public static final String COLUMN_NAME_IMAGE_NAME = "NAME";
         public static final String COLUMN_NAME_IMAGEID = "IMAGEID";
         public static final String COLUMN_NAME_UUID = "UUID";
         public static final String COLUMN_NAME_CREATED_AT = "CREATED_AT";

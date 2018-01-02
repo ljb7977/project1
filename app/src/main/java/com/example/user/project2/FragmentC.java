@@ -86,7 +86,6 @@ public class FragmentC extends Fragment {
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id){
                 Song s = SongList.get(position);
-                String path = s.data;
                 Intent intent = new Intent(getActivity(), MusicPlayer.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

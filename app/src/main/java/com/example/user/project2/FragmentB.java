@@ -2,12 +2,14 @@ package com.example.user.project2;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +24,7 @@ import java.util.ArrayList;
 public class FragmentB extends Fragment {
 
     private ArrayList<Photo> ImgList;
-    public GridView gridview;
+    public static GridView gridview;
 
     public class SquareImageView extends android.support.v7.widget.AppCompatImageView {
         public SquareImageView(Context context) {
@@ -83,6 +85,7 @@ public class FragmentB extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d("onCREATEVIEW", "!!!");
         View view = inflater.inflate(R.layout.tab_fragment2, container, false);
         gridview = view.findViewById(R.id.gridview);
 
@@ -101,7 +104,7 @@ public class FragmentB extends Fragment {
                 new FloatingActionButton.OnClickListener(){
                     public void onClick(View v){
                         ImageListFetchTask task = new ImageListFetchTask(getContext());
-                        task.execute(getContext().getString(R.string.url)+"/photos"); //TODO url
+                        task.execute(); //TODO url
                     }
         });
 
@@ -122,12 +125,20 @@ public class FragmentB extends Fragment {
             if(resultCode == 1) {
                 int index = data.getExtras().getInt("index");
 
-
                 Photo p = ImgList.get(index);
                 String selection  = MediaStore.Images.Media._ID+ " = ?";
                 String[] mSelectionArgs = {p.id};
                 getActivity().getContentResolver().delete(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        selection,
+                        mSelectionArgs
+                );
+
+                SQLiteDatabase db = new DBHelper(getActivity().getApplicationContext()).
+                        getWritableDatabase();
+                selection = ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID + " = ? ";
+                db.delete(
+                        ImageDBColumn.ImageEntry.TABLE_NAME,
                         selection,
                         mSelectionArgs
                 );
