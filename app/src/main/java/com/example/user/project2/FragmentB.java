@@ -73,7 +73,7 @@ public class FragmentB extends Fragment {
             } else {
                 imageView = (SquareImageView) convertView;
             }
-            Bitmap b = ImageViewer.LoadThumbnail(ImgList.get(position).thumbnail.toString(), ImgList.get(position).image);
+            Bitmap b = ImageViewer.LoadThumbnail(ImgList.get(position).thumbnail, ImgList.get(position).image);
 
             imageView.setImageBitmap(b);
             return imageView;
@@ -99,8 +99,8 @@ public class FragmentB extends Fragment {
         floatingActionButton.setOnClickListener(
                 new FloatingActionButton.OnClickListener(){
                     public void onClick(View v){
-                        ImageListFetchTask task = new ImageListFetchTask();
-                        task.execute("http://143.248.36.226:3000/photos"); //TODO url
+                        ImageListFetchTask task = new ImageListFetchTask(getContext());
+                        task.execute(getContext().getString(R.string.url)+"/photos"); //TODO url
                     }
         });
 

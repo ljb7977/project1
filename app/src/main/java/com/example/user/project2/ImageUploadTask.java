@@ -1,5 +1,8 @@
 package com.example.user.project2;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -23,9 +26,14 @@ import java.util.ArrayList;
 
 public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
 
+    private Context mContext;
     public static final String TAG = "UploadTask";
 
-    public String upload_url = "http://143.248.36.226:3000/photos"; //TODO URL;
+    public String upload_url = "/photos"; //TODO URL;
+
+    public ImageUploadTask (Context context){
+        mContext = context;
+    }
 
     @Override
     protected String doInBackground(Photo... p){
@@ -34,6 +42,7 @@ public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
             Photo photo = p[0];
             String path = photo.image;
             String name = path.substring(path.lastIndexOf("/") + 1);
+            String response = null;
 
             JSONObject jsonObject = new JSONObject();
             try{
@@ -58,7 +67,7 @@ public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
 
             String boundary = "*=========*";
 
-            URL url = new URL(upload_url);
+            URL url = new URL(mContext.getString(R.string.url)+upload_url);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
@@ -87,18 +96,34 @@ public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
                 InputStream is = conn.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                 StringBuilder stringBuilder = new StringBuilder();
-                String line = null;
+                String line, uuid = null;
 
                 while((line = reader.readLine()) != null){
                     stringBuilder.append(line+"\n");
                 }
-                Log.i(TAG, stringBuilder.toString());
+                response = stringBuilder.toString();
+                Log.i(TAG, response);
+
+                try{
+                    JSONObject job = new JSONObject(response);
+                    JSONArray jArray = job.getJSONArray("result");
+                    uuid = jArray.getJSONObject(0).getString("uuid");
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }
+
+                SQLiteDatabase db = new DBHelper(mContext).getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, uuid); //TODO UUID
+                values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID, photo.id);
+                values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT, photo.date_added);
+                values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT, photo.date_modified);
+                db.insert(ImageDBColumn.ImageEntry.TABLE_NAME, null, values);
 
                 is.close();
             } else {
                 Log.i(TAG, "upload fail");
             }
-
             conn.disconnect();
         } catch (MalformedURLException e) {
             e.printStackTrace();

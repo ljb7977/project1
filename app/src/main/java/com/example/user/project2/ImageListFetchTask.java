@@ -1,5 +1,6 @@
 package com.example.user.project2;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -16,14 +17,19 @@ import java.util.ArrayList;
 
 public class ImageListFetchTask extends AsyncTask<String, Integer, String[]> {
 
+    private Context mContext;
     public static final String TAG = "ImageListFetchTask";
-    public final String url_str = "http://143.248.36.226:3000/photos"; //TODO URL
+    public final String url_str = "/photos"; //TODO URL
+
+    public ImageListFetchTask (Context context){
+        mContext = context;
+    }
 
     @Override
     protected String[] doInBackground(String... urls){
         Log.i(TAG, "Start Fetching list...");
         try{
-            URL url = new URL(url_str);
+            URL url = new URL(mContext.getString(R.string.url)+url_str);
             InputStream stream;
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

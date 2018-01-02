@@ -74,7 +74,7 @@ public class MyApplication extends Application {
             Log.d("CREATED_AT", cursor2.getString(2));
             Log.d("MODIFIED_AT", cursor2.getString(3));
         }
-        */
+*/
 
         String selection = ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID + " = ? ";
 
@@ -94,15 +94,8 @@ public class MyApplication extends Application {
 
         for (Photo p : newImages){
             Log.i("NEWIMAGES", p.image);
-            ContentValues values = new ContentValues();
-            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, "uuid"); //TODO UUID
-            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID, p.id);
-            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT, p.date_added);
-            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT, p.date_modified);
-            db.insert(ImageDBColumn.ImageEntry.TABLE_NAME, null, values);
+            new ImageUploadTask(getApplicationContext()).execute(p);
         }
-
-        //new ImageListFetchTask().execute(); //TODO url
     }
 
     private ArrayList<Photo> fetchAllImages() {
