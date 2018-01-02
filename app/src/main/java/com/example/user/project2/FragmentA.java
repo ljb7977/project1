@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -41,7 +43,8 @@ import static android.app.Activity.RESULT_OK;
 
 public class FragmentA extends Fragment {
     String str;
-    ArrayList<Contact> ContactList;
+    ArrayList<Contact> contactList;
+    ArrayList<String> facebookContactList;
     CallbackManager callbackManager;
     ListViewAdapter adapter;
     boolean  buttonExpanded = false;
@@ -53,73 +56,20 @@ public class FragmentA extends Fragment {
     static final int RETURN_OK = 0x722;
     static final int RETURN_EDIT = 0x723;
     static final int RETURN_DELETE = 0x724;
+    static final int RETURN_ADD = 0x727;
+    static final int REQADD = 0x725;
+    static final int REQVIEW = 0x726;
+    static final int REQFACEADD = 0x728;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.tab_fragment1, container, false);
         createActionButtons(view);
+        MyApplication myApp = (MyApplication) getActivity().getApplication();
+        contactList = myApp.getContactList();
+        facebookContactList = myApp.getFacebookContactList();
         registerFacebookTask();
         setupListView(view.findViewById(R.id.listview));
-
-        boolean s = readJson();
-        if(s){
-            try{
-                JSONArray jarray = new JSONArray(str);
-                for(int i=0; i<jarray.length(); i++){
-                    JSONObject jobject = jarray.getJSONObject(i);
-                    String name = jobject.getString("name");
-                    String number = jobject.getString("number");
-                    String email = jobject.getString("email");
-
-                    adapter.addItem(name, number, email);
-                }
-            }catch(JSONException e){
-                e.printStackTrace();
-            }
-        }
-        for(int i=0; i<ContactList.size(); i++){
-            Contact c = ContactList.get(i);
-            adapter.addItem(c.name, c.number, c.email);
-        }
-
-        new HTTPJSONRequest("http://143.248.36.226:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
-            @Override
-            public void on_response(JSONObject response) {
-                try {
-                    JSONArray f = response.getJSONArray("content");
-                    int le = f.length();
-                    for(int i = 0; i < le; i++)
-                    {
-                        JSONObject fi = f.getJSONObject(i);
-                        if(fi != null)
-                        {
-                            String name = "";
-                            String number = "";
-                            String email = "";
-                            if(fi.has("name"))
-                                name = fi.getString("name");
-                            if(fi.has("phone"))
-                                number = fi.getString("phone");
-                            if(fi.has("email"))
-                                email = fi.getString("email");
-                            if(adapter != null)
-                                adapter.addItem(name, number, email);
-                        }
-                    }
-                    if(adapter != null)
-                    {
-                        adapter.notifyDataSetChanged();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void on_fail() {
-                Log.d("JSON", "fail");
-            }
-        }).execAsync();
         return view;
     }
 
@@ -127,20 +77,19 @@ public class FragmentA extends Fragment {
     {
         if(view == null) return;
         ListView listview = (ListView)view;
-        adapter = new ListViewAdapter();
+        adapter = new ListViewAdapter(contactList);
 
-        MyApplication myApp = (MyApplication) getActivity().getApplication();
-        ContactList = myApp.getContactList();
 
         listview.setAdapter(adapter);
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id){
                 Intent intent = new Intent(getActivity(), ContactViewer.class);
-                ListViewItem item = (ListViewItem)adapter.getItem(position);
-                intent.putExtra("name", item.getName());
-                intent.putExtra("number", item.getNumber());
-                intent.putExtra("email", item.getEmail());
+                Contact item = (Contact)adapter.getItem(position);
+                intent.putExtra("request",REQVIEW);
+                intent.putExtra("name", item.name);
+                intent.putExtra("number", item.number);
+                intent.putExtra("email", item.email);
                 intent.putExtra("id", position);
                 startActivityForResult(intent, REQUEST_CONTACTINFO);
             }
@@ -158,6 +107,8 @@ public class FragmentA extends Fragment {
                 if(AccessToken.getCurrentAccessToken() != null)
                 {
                     LoginManager.getInstance().logOut();
+                    Toast.makeText(getActivity(), "logout successful", Toast.LENGTH_SHORT).show();
+                    facebookButton.setImageResource(R.drawable.com_facebook_favicon_blue);
                 }
                 else {
                     LoginManager.getInstance().logInWithReadPermissions(FragmentA.this, Arrays.asList("user_friends"));
@@ -166,7 +117,96 @@ public class FragmentA extends Fragment {
         });
 
         addButton = view.findViewById(R.id.add_button);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                collapseButtons();
+                if(facebookContactList != null && facebookContactList.size() > 0) {
+                    AlertDialog.Builder chooseAlert = new AlertDialog.Builder(getActivity());
+                    chooseAlert.setTitle("add user from facebook");
+                    chooseAlert.setMessage("Do you want to add user from your facebook friends list?");
+                    chooseAlert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            b.setTitle("Friends list");
+                            String[] names = Arrays.copyOf(facebookContactList.toArray(), facebookContactList.size(), String[].class);
+                            b.setItems(names, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                    Intent intent = new Intent(getActivity(), ContactViewer.class);
+                                    intent.putExtra("name", facebookContactList.get(i));
+                                    intent.putExtra("request", REQFACEADD);
+                                    startActivityForResult(intent, REQUEST_CONTACTINFO);
+                                }
+                            });
+                            b.show();
+                        }
+                    });
+                    chooseAlert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent intent = new Intent(getActivity(), ContactViewer.class);
+                            intent.putExtra("request", REQADD);
+                            startActivityForResult(intent, REQUEST_CONTACTINFO);
+                        }
+                    });
+                    chooseAlert.show();
+                }
+                else {
+                    Intent intent = new Intent(getActivity(), ContactViewer.class);
+                    intent.putExtra("request", REQADD);
+                    startActivityForResult(intent, REQUEST_CONTACTINFO);
+                }
+            }
+        });
         syncButton = view.findViewById(R.id.sync_button);
+        syncButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                collapseButtons();
+                new HTTPJSONRequest("http://143.248.36.226:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
+                    @Override
+                    public void on_response(JSONObject response) {
+                        try {
+                            JSONArray f = response.getJSONArray("content");
+                            int le = f.length();
+                            for(int i = 0; i < le; i++)
+                            {
+                                JSONObject fi = f.getJSONObject(i);
+                                if(fi != null)
+                                {
+                                    String name = "";
+                                    String number = "";
+                                    String email = "";
+                                    if(fi.has("name"))
+                                        name = fi.getString("name");
+                                    if(fi.has("phone"))
+                                        number = fi.getString("phone");
+                                    if(fi.has("email"))
+                                        email = fi.getString("email");
+                                    if(contactList != null)
+                                        contactList.add(new Contact(name, number, email));
+                                }
+                            }
+                            Toast.makeText(getActivity(), "sync finished", Toast.LENGTH_SHORT).show();
+                            if(adapter != null)
+                            {
+                                adapter.notifyDataSetChanged();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void on_fail() {
+                        Log.d("JSON", "fail");
+                    }
+                }).execAsync();
+            }
+        });
         setButtonsInvisible(View.GONE);
         facebookButton.setVisibility(View.GONE);
         expandButton.setOnClickListener(new View.OnClickListener() {
@@ -215,6 +255,7 @@ public class FragmentA extends Fragment {
 
         if(AccessToken.getCurrentAccessToken() != null)
         {
+            facebookButton.setImageResource(R.drawable.com_facebook_tooltip_black_xout);
             executeFacebookContactTask(AccessToken.getCurrentAccessToken());
         }
         // Callback registration
@@ -222,6 +263,7 @@ public class FragmentA extends Fragment {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 AccessToken token = loginResult.getAccessToken();
+                facebookButton.setImageResource(R.drawable.com_facebook_tooltip_black_xout);
                 executeFacebookContactTask(token);
                 // App code
             }
@@ -238,44 +280,39 @@ public class FragmentA extends Fragment {
         });
     }
 
-    public boolean readJson(){
-        AssetManager am = getResources().getAssets();
-        InputStream is;
-        try{
-            is = getResources().openRawResource(R.raw.address);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            str  = new String(buffer, "UTF-8");
-            return true;
-        }catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_CONTACTINFO)
         {
             if(resultCode == RESULT_OK)
             {
-                Log.d("FRAGA", "OK");
                 switch(data.getIntExtra("result", -1))
                 {
                     case -1:
                         break;
+                    case RETURN_ADD:
+                        addContactList(
+                                new Contact(
+                                        data.getStringExtra("name"),
+                                        data.getStringExtra("number"),
+                                        data.getStringExtra("email"))
+                        );
+                        adapter.notifyDataSetChanged();
+                        break;
                     case RETURN_OK:
+                        Log.d("FRAGA", "OK");
                         break;
                     case RETURN_EDIT:
-                        adapter.changeItem(
+                        changeContactList(
                                 data.getIntExtra("id", -1),
-                                data.getStringExtra("name"),
-                                data.getStringExtra("number"),
-                                data.getStringExtra("email"));
+                                new Contact(
+                                        data.getStringExtra("name"),
+                                        data.getStringExtra("number"),
+                                        data.getStringExtra("email")));
+                        adapter.notifyDataSetChanged();
                         break;
                     case RETURN_DELETE:
-                        adapter.removeItem(data.getIntExtra("id", -1));
+                        removeContactList(data.getIntExtra("id", -1));
                         adapter.notifyDataSetChanged();
                         break;
                 }
@@ -293,6 +330,30 @@ public class FragmentA extends Fragment {
         }
     }
 
+    void changeContactList(int id, Contact c)
+    {
+        if(id >= 0) {
+            if (contactList != null)
+                contactList.set(id, c);
+        }
+    }
+
+    void removeContactList(int id)
+    {
+        if(id >= 0)
+        {
+            if(contactList != null)
+                contactList.remove(id);
+        }
+    }
+
+    void addContactList(Contact c)
+    {
+        if(contactList != null)
+        {
+            contactList.add(c);
+        }
+    }
     public void executeFacebookContactTask(AccessToken token)
     {
         GraphRequest request =
@@ -315,13 +376,9 @@ public class FragmentA extends Fragment {
                                                 JSONObject fi = f.getJSONObject(i);
                                                 if(fi != null && fi.has("name"))
                                                 {
-                                                    if(adapter != null)
-                                                        adapter.addItem(fi.getString("name"), "", "");
+                                                    if(facebookContactList != null)
+                                                        facebookContactList.add(fi.getString("name"));
                                                 }
-                                            }
-                                            if(adapter != null)
-                                            {
-                                                adapter.notifyDataSetChanged();
                                             }
                                         } catch (JSONException e) {
                                             e.printStackTrace();

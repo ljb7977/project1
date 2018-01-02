@@ -11,11 +11,11 @@ import java.util.ArrayList;
 
 public class ListViewAdapter extends BaseAdapter {
     // Adapter에 추가된 데이터를 저장하기 위한 ArrayList
-    private ArrayList<ListViewItem> listViewItemList = new ArrayList<ListViewItem>() ;
+    private ArrayList<Contact> listViewItemList;
 
     // ListViewAdapter의 생성자
-    public ListViewAdapter() {
-
+    public ListViewAdapter(ArrayList<Contact> data) {
+        listViewItemList = data;
     }
 
     // Adapter에 사용되는 데이터의 개수를 리턴. : 필수 구현
@@ -40,10 +40,10 @@ public class ListViewAdapter extends BaseAdapter {
         TextView nameTextView = convertView.findViewById(R.id.textView1);
 
         // Data Set(listViewItemList)에서 position에 위치한 데이터 참조 획득
-        ListViewItem listViewItem = listViewItemList.get(position);
+        Contact listViewItem = listViewItemList.get(position);
 
         // 아이템 내 각 위젯에 데이터 반영
-        nameTextView.setText(listViewItem.getName());
+        nameTextView.setText(listViewItem.name);
 
         return convertView;
     }
@@ -60,33 +60,6 @@ public class ListViewAdapter extends BaseAdapter {
         return listViewItemList.get(position) ;
     }
 
-    // 아이템 데이터 추가를 위한 함수. 개발자가 원하는대로 작성 가능.
-    public void addItem(String name, String number, String email) {
-        ListViewItem item = new ListViewItem();
-
-        item.setName(name);
-        item.setNumber(number);
-        item.setEmail(email);
-
-        listViewItemList.add(item);
-    }
-
-    public void removeItem(int id)
-    {
-        if(id >= 0)
-            listViewItemList.remove(id);
-    }
-
-    public void changeItem(int id, String name, String number, String email)
-    {
-        if(id >= 0)
-        {
-            ListViewItem cur = listViewItemList.get(id);
-            cur.setName(name);
-            cur.setNumber(number);
-            cur.setEmail(email);
-        }
-    }
 }
 
 

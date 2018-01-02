@@ -22,7 +22,7 @@ public class MyApplication extends Application {
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;
-    public ArrayList<Contact> FacebookContactList;
+    public ArrayList<String> FacebookContactList;
 
     @Override
     public void onCreate(){
@@ -275,27 +275,18 @@ public class MyApplication extends Application {
 
     private ArrayList<Contact> getLocalContacts(){
         // TODO: make local json file to save facebook id
-
-        ArrayList<Contact> deviceContact = getDeviceContacts();
+        ArrayList<Contact> total_contact;
         ArrayList<Contact> savedContact = getSavedContacts();
-        ArrayList<Contact> total_contact = merge_contacts(deviceContact, savedContact);
-        saveContacts(total_contact);
-        return total_contact;
-
-    }
-    private ArrayList<Contact> getServerContacts(){
-        // TODO: implement server communication
-        return new ArrayList<>();
-    }
-    private ArrayList<Contact> merge_contacts(ArrayList<Contact> local, ArrayList<Contact> remote)
-    {
-        ArrayList<Contact> retval = local;
-        for(Contact i:remote)
+        if(savedContact.size() == 0)
         {
-            if(!retval.contains(i))
-                retval.add(i);
+            total_contact = getDeviceContacts();
+            saveContacts(total_contact);
         }
-        return retval;
+        else
+        {
+            total_contact = savedContact;
+        }
+        return total_contact;
 
     }
     private ArrayList<Contact> fetchAllContacts(){
@@ -337,4 +328,5 @@ public class MyApplication extends Application {
         return SongList;
     }
     public ArrayList<Contact> getContactList(){return ContactList;}
+    public ArrayList<String> getFacebookContactList(){return FacebookContactList;}
 }

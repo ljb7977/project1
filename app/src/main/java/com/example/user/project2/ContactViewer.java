@@ -21,6 +21,7 @@ public class ContactViewer extends AppCompatActivity {
     private EnumMap<TextType, Integer> viewerXML = new EnumMap<>(TextType.class);
     Intent returnIntent = new Intent();
     int contactId = -1;
+    int req = -1;
     boolean is_edited = false;
     AlertDialog deleteAlert;
 
@@ -32,14 +33,27 @@ public class ContactViewer extends AppCompatActivity {
         createDeleteDialog();
         Intent intent = getIntent();
 
-        String name = intent.getStringExtra("name");
-        String number = intent.getStringExtra("number");
-        String email = intent.getStringExtra("email");
-        contactId = intent.getIntExtra("id", -1);
-        getViewerText(TextType.NAME).setText(name);
-        getViewerText(TextType.NUMBER).setText(number);
-        getViewerText(TextType.EMAIL).setText(email);
-        setAllEditable(false);
+        req = intent.getIntExtra("request", FragmentA.REQVIEW);
+        if(req == FragmentA.REQVIEW) {
+            String name = intent.getStringExtra("name");
+            String number = intent.getStringExtra("number");
+            String email = intent.getStringExtra("email");
+            contactId = intent.getIntExtra("id", -1);
+            getViewerText(TextType.NAME).setText(name);
+            getViewerText(TextType.NUMBER).setText(number);
+            getViewerText(TextType.EMAIL).setText(email);
+            setAllEditable(false);
+        }
+        else
+        {
+            if(req == FragmentA.REQFACEADD)
+            {
+                String name = intent.getStringExtra("name");
+                getViewerText(TextType.NAME).setText(name);
+            }
+            findViewById(R.id.contactEditButton).setVisibility(View.INVISIBLE);
+            findViewById(R.id.contactDeleteButton).setVisibility(View.INVISIBLE);
+        }
     }
 
     void setAllEditable(boolean flag){
@@ -113,11 +127,18 @@ public class ContactViewer extends AppCompatActivity {
 
     public void onContactOkButtonClick(View view)
     {
-        if(is_edited) {
-            returnIntent.putExtra("result", FragmentA.RETURN_EDIT);
+        if(is_edited || req == FragmentA.REQADD || req == FragmentA.REQFACEADD) {
             returnIntent.putExtra("name", getViewerText(TextType.NAME).getText().toString());
             returnIntent.putExtra("number", getViewerText(TextType.NUMBER).getText().toString());
             returnIntent.putExtra("email", getViewerText(TextType.EMAIL).getText().toString());
+            if(is_edited) {
+                returnIntent.putExtra("id", contactId);
+                returnIntent.putExtra("result", FragmentA.RETURN_EDIT);
+            }
+            else {
+                returnIntent.putExtra("result", FragmentA.RETURN_ADD);
+            }
+
         }
         else {
             returnIntent.putExtra("result", FragmentA.RETURN_OK);

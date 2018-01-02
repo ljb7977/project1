@@ -28,9 +28,10 @@
         android:layout_marginEnd="8dp"
         android:clickable="true"
         android:focusable="true"
+        app:backgroundTint="@android:color/holo_blue_bright"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:color/transparent" />
+        app:srcCompat="@android:drawable/stat_sys_upload" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/facebook_button"
@@ -39,9 +40,10 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:clickable="true"
+        app:backgroundTint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@+id/expand_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@color/colorAccent" />
+        app:srcCompat="@drawable/com_facebook_favicon_blue" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/sync_button"
@@ -50,9 +52,10 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:clickable="true"
+        app:backgroundTint="@android:color/holo_orange_dark"
         app:layout_constraintBottom_toTopOf="@+id/facebook_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@color/colorAccent" />
+        app:srcCompat="@android:drawable/stat_notify_sync" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/add_button"
@@ -61,8 +64,9 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:clickable="true"
+        app:backgroundTint="@android:color/holo_purple"
         app:layout_constraintBottom_toTopOf="@+id/sync_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@color/colorAccent" />
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </android.support.constraint.ConstraintLayout>
