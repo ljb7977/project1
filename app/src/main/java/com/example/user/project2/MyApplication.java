@@ -40,8 +40,6 @@ public class MyApplication extends Application {
     }
 
     public void loadData() {
-
-
         ImgList = fetchAllImages();
         SongList = fetchAllSongs();
         ContactList = fetchAllContacts();

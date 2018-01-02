@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
@@ -120,6 +121,16 @@ public class FragmentB extends Fragment {
         if(requestCode == 0){
             if(resultCode == 1) {
                 int index = data.getExtras().getInt("index");
+
+
+                Photo p = ImgList.get(index);
+                String selection  = MediaStore.Images.Media._ID+ " = ?";
+                String[] mSelectionArgs = {p.id};
+                getActivity().getContentResolver().delete(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        selection,
+                        mSelectionArgs
+                );
 
                 ImgList.remove(index);
                 MyApplication myApp = (MyApplication) getActivity().getApplication();
