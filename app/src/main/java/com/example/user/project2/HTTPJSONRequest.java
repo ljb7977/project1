@@ -63,7 +63,14 @@ public class HTTPJSONRequest {
                     //Log.d("REQ", Integer.toString(con.getResponseCode()));
                     DataInputStream x = new DataInputStream(con.getInputStream());
                     byte[] response = new byte[con.getContentLength()];
-                    x.read(response, 0, con.getContentLength());
+                    int recv_byte = con.getContentLength();
+                    int off = 0;
+                    while(recv_byte > 0) {
+                        int read_len = x.read(response, off, recv_byte);
+                        off += read_len;
+                        recv_byte -= read_len;
+                    }
+
                     JSONObject jsonob = new JSONObject(new String(response));
                     return jsonob;
                 }
