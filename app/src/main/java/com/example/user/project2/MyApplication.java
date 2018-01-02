@@ -235,7 +235,7 @@ public class MyApplication extends Application {
                         reader.skipValue();
                     }
                 }
-                Contact x = new Contact(name, email, phone);
+                Contact x = new Contact(name, phone, email);
                 x.id = id;
                 retval.add(x);
                 reader.endObject();
