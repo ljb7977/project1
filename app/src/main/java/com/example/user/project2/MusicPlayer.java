@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
@@ -14,10 +16,18 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class MusicPlayer extends AppCompatActivity {
@@ -174,14 +184,79 @@ public class MusicPlayer extends AppCompatActivity {
     public void preparesong(int position){
         Song song = songs.get(position);
         String path = song.data;
+        String cache_path = song.cache_data;
         String albumArtPath = song.albumCover;
         String title_name = song.title;
         String artist_name = song.artist;
         boolean islooping = mp.isLooping();
-
         mp.reset();
         try {
-            mp.setDataSource(path);
+            if(cache_path != null && new File(cache_path).isFile())
+            {
+                mp.setDataSource(cache_path);
+            }
+            else {
+                if (path.startsWith("http:")) {
+                    URL url = new URL(path);
+                    AsyncTask<URL, Void, String> f =
+                            new AsyncTask<URL, Void, String>() {
+                                @Override
+                                protected String doInBackground(URL... urls) {
+                                    try {
+                                        URL url = urls[0];
+                                        File outputDir = getCacheDir(); // context being the Activity pointer
+                                        File outputFile = File.createTempFile("prefix", ".mp3", outputDir);
+                                        URLConnection conection = url.openConnection();
+                                        conection.connect();
+
+                                        // this will be useful so that you can show a tipical 0-100%
+                                        // progress bar
+                                        int lenghtOfFile = conection.getContentLength();
+
+                                        // download the file
+                                        InputStream input = new BufferedInputStream(url.openStream(),
+                                                8192);
+
+                                        // Output stream
+                                        OutputStream output = new FileOutputStream(outputFile);
+
+                                        byte data[] = new byte[1024];
+
+                                        long total = 0;
+                                        int count;
+                                        while ((count = input.read(data)) != -1) {
+                                            total += count;
+                                            // writing data to file
+                                            output.write(data, 0, count);
+                                        }
+
+                                        // flushing output
+                                        output.flush();
+
+                                        // closing streams
+                                        output.close();
+                                        input.close();
+                                        return outputFile.getAbsolutePath();
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                    } catch (MalformedURLException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return null;
+                                }
+
+                            };
+                    f.execute(url);
+                    song.cache_data = f.get();
+                    mp.setDataSource(song.cache_data);
+                    ((MyApplication) getApplication()).saveSongs(((MyApplication) getApplication()).getSongList());
+                } else {
+                    mp.setDataSource(path);
+                }
+            }
+            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mp.prepare();
             mp.setLooping(islooping);
         } catch(Exception e) {

@@ -1,7 +1,7 @@
 package com.example.user.project2;
 
 public class Song {
-    String id, title, artist, data, albumCover, uuid;
+    String id, title, artist, data, albumCover, uuid, cache_data;
     long duration;
     Song (String id, String title, String artist, long duration, String data, String albumCover) {
         this.id = id;
