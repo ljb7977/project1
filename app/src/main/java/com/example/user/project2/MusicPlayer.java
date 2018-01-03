@@ -15,6 +15,9 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class MusicPlayer extends AppCompatActivity {
@@ -195,7 +198,20 @@ public class MusicPlayer extends AppCompatActivity {
 
         Bitmap b;
         if(albumArtPath != null){
-            b = BitmapFactory.decodeFile(albumArtPath, null);
+            if(albumArtPath.startsWith("http:")) {
+                try {
+                    InputStream aurl = new java.net.URL(albumArtPath).openStream();
+                    b = BitmapFactory.decodeStream(aurl);
+                    aurl.close();
+                }
+                 catch(IOException e)
+                 {
+                        b = null;
+                 }
+            }
+            else {
+                b = BitmapFactory.decodeFile(albumArtPath, null);
+            }
         } else {
             b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
         }
