@@ -6,16 +6,92 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/editTextUserId"
+        app:layout_constraintBottom_toTopOf="@id/textViewUserNameLabel"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginBottom="4dp"
+
+        android:padding="8dp"
+        android:layout_centerHorizontal="true"
+        android:background="#FFFFFF"
+        android:hint="Username"
+        android:inputType="textPersonName"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="12dp"
+
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:id="@+id/textViewUserNameLabel"
+        android:layout_centerHorizontal="true"
+        app:layout_constraintBottom_toTopOf="@id/editTextPassword" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:id="@+id/editTextPassword"
+
+        app:layout_constraintBottom_toTopOf="@id/textViewUserPasswordLabel"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+
+        android:layout_centerHorizontal="true"
+        android:background="#FFFFFF"
+        android:hint="Password"
+        android:inputType="textPersonName"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:id="@+id/textViewUserPasswordLabel"
+        android:layout_centerHorizontal="true"
+        app:layout_constraintBottom_toTopOf="@id/login_button" />
+
     <Button
         android:id="@+id/login_button"
-        android:layout_width="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:text="Login"
+        app:layout_constraintBottom_toTopOf="@id/create_account_button"
+        tools:gravity="center" />
+
+    <Button
+        android:id="@+id/create_account_button"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:text="Create Account"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:gravity="center" />
+
 </android.support.constraint.ConstraintLayout>

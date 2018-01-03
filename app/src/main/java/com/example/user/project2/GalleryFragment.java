@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -32,8 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -203,8 +202,6 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
         while(cursor.moveToNext()){
             Log.d("UUID", cursor.getString(0));
             Log.d("IMAGE_ID", cursor.getString(1));
-            Log.d("CREATED_AT", cursor.getString(2));
-            Log.d("MODIFIED_AT", cursor.getString(3));
         }
 
         ArrayList<Photo> newImages = new ArrayList<>();
@@ -232,7 +229,8 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
         new ImageListFetchTask().execute();
     }
 
-    public class ImageListFetchTask extends AsyncTask<String[], Integer, String> implements MediaScannerConnection.OnScanCompletedListener{
+    public class ImageListFetchTask extends AsyncTask<String[], Integer, String>
+            implements MediaScannerConnection.OnScanCompletedListener{
 
         public String uuid;
         public static final String TAG = "ImageListFetchTask";
@@ -240,11 +238,15 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
 
         public class PhotoFile {
             String uuid, url, name;
+            String createdAt, uploadedAt;
 
-            public PhotoFile(String uuid, String url, String name){
+            public PhotoFile(String uuid, String url, String name,
+                             String createdAt, String uploadedAt){
                 this.uuid = uuid;
                 this.url = url;
                 this.name = name;
+                this.createdAt = createdAt;
+                this.uploadedAt = uploadedAt;
             }
         }
 
@@ -271,7 +273,6 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                     return null;
                 }
 
-
                 stream = conn.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                 StringBuilder stringBuilder = new StringBuilder();
@@ -287,7 +288,6 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 Log.i(TAG, temp.toString(4));
                 ArrayList<PhotoFile> ImagesToFetch = new ArrayList<>();
 
-                final SQLiteDatabase db = new DBHelper(getContext()).getWritableDatabase();
                 JSONObject response = new JSONObject(stringBuilder.toString());
                 JSONArray jArray = response.getJSONArray("content");
 
@@ -298,14 +298,18 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
 
                 String selection = ImageDBColumn.ImageEntry.COLUMN_NAME_UUID + " = ? ";
 
+                final SQLiteDatabase db = new DBHelper(getContext()).getWritableDatabase();
+
                 for (int i = 0; i < jArray.length(); i++) {
                     JSONObject content = jArray.getJSONObject(i);
                     JSONObject metadata = content.getJSONObject("metadata");
                     PhotoFile f = new PhotoFile(
                             content.getString("uuid"),
                             content.getString("url"),
-                            metadata.getString("name")
-                    ); //TODO get metadata
+                            metadata.getString("name"),
+                            metadata.getString("createdAt"),
+                            metadata.getString("uploadedAt")
+                    );
 
                     Cursor cursor = db.query(
                             ImageDBColumn.ImageEntry.TABLE_NAME,
@@ -377,24 +381,24 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
 
             assert c != null;
             c.moveToFirst();
+
             String id = c.getString(0); //get image id
             ContentValues values = new ContentValues();
             values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, uuid);
             values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID, id);
-            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT, "0");
-            values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT, "0"); //TODO
             db.insert(ImageDBColumn.ImageEntry.TABLE_NAME, null, values);
 
             MyApplication myApp = (MyApplication) getActivity().getApplication();
             ImgList = myApp.fetchAllImages();
             myApp.setImgList(ImgList);
             final ImageAdapter adapter = (ImageAdapter) gridview.getAdapter();
+            final String filename = path.substring(path.lastIndexOf("/") + 1);
 
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i("Handler", "!!!");
                     adapter.notifyDataSetChanged();
+                    Toast.makeText(getContext(), filename + " is downloaded.", Toast.LENGTH_LONG).show();
                 }
             });
             c.close();
@@ -413,13 +417,13 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 Photo photo = p[0];
                 String path = photo.image;
                 String name = path.substring(path.lastIndexOf("/") + 1);
-                String response = null;
+                String response;
 
                 JSONObject jsonObject = new JSONObject();
                 try{
                     jsonObject.put("fileName", name);
                     jsonObject.put("createdAt", photo.date_added);
-                    jsonObject.put("md5", "md5");
+                    //jsonObject.put("md5", "md5");
                     jsonObject.put("name", name);
                 } catch (JSONException e){
                     e.printStackTrace();
@@ -455,14 +459,27 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 wr.writeBytes("Content-Disposition: form-data; name=\""+name+"\"; filename=\""+name+"\"\r\n");
                 wr.writeBytes("Content-Type: image/jpeg\r\n\r\n");
 
+
+                FileInputStream fileInputStream = new FileInputStream(path);
+
+                byte[] buffer = new byte[1024];
+                int len = 0;
+
+                while((len = fileInputStream.read(buffer)) != -1){
+                    wr.write(buffer, 0, len);
+                }
+
+                /*
                 Bitmap b = BitmapFactory.decodeFile(p[0].image, null);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 b.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                 byte[] imageBytes = baos.toByteArray();
                 wr.write(imageBytes);
+                */
 
                 wr.writeBytes("\r\n--" + boundary + "--\r\n");
                 wr.flush();
+                wr.close();
 
                 int responseCode = conn.getResponseCode();
                 if(responseCode == HttpURLConnection.HTTP_OK){
@@ -494,6 +511,7 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                     db.insert(ImageDBColumn.ImageEntry.TABLE_NAME, null, values);
 
                     is.close();
+                    return name;
                 } else {
                     Log.i(TAG, "upload fail");
                 }
@@ -504,6 +522,11 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        public void onPostExecute(String filename){
+            Toast.makeText(getContext(), filename + " is uploaded.", Toast.LENGTH_LONG).show();
         }
     }
 }
