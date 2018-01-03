@@ -50,7 +50,7 @@
         android:layout_centerHorizontal="true"
         android:background="#FFFFFF"
         android:hint="Password"
-        android:inputType="textPersonName"/>
+        android:inputType="textPassword"/>
 
     <TextView
         android:layout_width="match_parent"

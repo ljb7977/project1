@@ -71,6 +71,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed(){
+        LogoutDialogFragment dialog = new LogoutDialogFragment();
+
+        dialog.show(getFragmentManager(), "logoutdialog");
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[],
                                            int[] grantResults) {
         MyApplication myApp = (MyApplication) getApplication();

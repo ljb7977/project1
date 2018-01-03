@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,7 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice;
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUser;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserSession;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationDetails;
@@ -21,7 +23,6 @@ import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.Chal
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.MultiFactorAuthenticationContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.NewPasswordContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler;
-import com.amazonaws.regions.Regions;
 
 public class LoginActivity extends Activity implements Button.OnClickListener{
 
@@ -54,15 +55,18 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
         inUsername = (EditText) findViewById(R.id.editTextUserId);
         inPassword = (EditText) findViewById(R.id.editTextPassword);
 
-        /*Auto login
+        inPassword.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        inPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+
+        //Auto login
         CognitoUser user = AppHelper.getPool().getCurrentUser();
         username = user.getUserId();
+        password = inPassword.getText().toString();
         if(username != null) {
             AppHelper.setUser(username);
             inUsername.setText(user.getUserId());
             user.getSessionInBackground(authenticationHandler);
         }
-        */
     }
 
     @Override
@@ -128,6 +132,13 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
 
             closeWaitDialog();
 
+            if(password == null || password.length() < 1) {
+                TextView label = (TextView) findViewById(R.id.textViewUserPasswordLabel);
+                label.setText("Please Enter password");
+                inPassword.setBackground(getDrawable(R.drawable.text_border_error));
+                return;
+            }
+
             AuthenticationDetails authenticationDetails = new AuthenticationDetails(username, password, null);
             authenticationContinuation.setAuthenticationDetails(authenticationDetails);
             authenticationContinuation.continueTask();
@@ -148,6 +159,10 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
             TextView label = (TextView) findViewById(R.id.textViewUserNameLabel);
             label.setText("Sign-in failed");
             inPassword.setBackground(getDrawable(R.drawable.text_border_error));
+
+            label = (TextView) findViewById(R.id.textViewUserPasswordLabel);
+            label.setText("Sign-in failed");
+            inUsername.setBackground(getDrawable(R.drawable.text_border_error));
 
             showDialogMessage("Sign-in failed", AppHelper.formatException(exception));
             Log.e(TAG, "Login Failure");

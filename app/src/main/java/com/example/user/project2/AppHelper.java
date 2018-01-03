@@ -134,6 +134,10 @@ public class AppHelper {
         return signUpFieldsC2O;
     }
 
+    public static String getCurrUser() {
+        return user;
+    }
+
     public static String formatException(Exception exception) {
         String formattedString = "Internal Error";
         Log.e(TAG, " -- Error: "+exception.toString());
