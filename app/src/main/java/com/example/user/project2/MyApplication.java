@@ -48,7 +48,8 @@ public class MyApplication extends Application {
 
     public void loadData() {
         ImgList = fetchAllImages();
-        SongList = fetchAllSongs();
+        SongList = merge_songs(getSavedSongs(), fetchAllSongs());
+        saveSongs(SongList);
         ContactList = fetchAllContacts();
     }
 
@@ -265,7 +266,7 @@ public class MyApplication extends Application {
         return retval;
     }
     private void saveContacts(ArrayList<Contact> lists)
-    {
+        {
         String filename = "saved.json";
         try{
             JsonWriter writer = new JsonWriter(new OutputStreamWriter(openFileOutput(filename, Context.MODE_PRIVATE)));
@@ -277,6 +278,127 @@ public class MyApplication extends Application {
                 writer.name("phone").value(person.number);
                 writer.name("email").value(person.email);
                 writer.name("id").value(person.id);
+                writer.endObject();
+            }
+            writer.endArray();
+            writer.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private ArrayList<Song> merge_songs(ArrayList<Song> saved, ArrayList<Song> device)
+    {
+        ArrayList<Song> retval = new ArrayList<>();
+        for(Song i : saved)
+        {
+            retval.add(i);
+        }
+        for(Song j : device)
+        {
+            boolean dup = false;
+            for(Song i : saved)
+            {
+                if(i.id.equals(j.id))
+                {
+                    dup = true;
+                    break;
+                }
+            }
+            if(!dup)
+            {
+                retval.add(j);
+            }
+        }
+        return retval;
+    }
+    private ArrayList<Song> getSavedSongs()
+    {
+        ArrayList<Song> retval = new ArrayList<>();
+        String filename = "savedSong.json";
+        try{
+            JsonReader reader = new JsonReader(new InputStreamReader(openFileInput(filename)));
+            reader.beginArray();
+            while(reader.hasNext())
+            {
+                reader.beginObject();
+                String title = null;
+                String artist = null;
+                String data = null;
+                String id = null;
+                String uuid = null;
+                while(reader.hasNext())
+                {
+                    String key = reader.nextName();
+                    if(key.equals("title"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            title = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if (key.equals("artist"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            artist = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if(key.equals("data"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            data = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if(key.equals("id"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            id = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else if(key.equals("uuid"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            uuid = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
+                    else
+                    {
+                        reader.skipValue();
+                    }
+                }
+                Song x = new Song(id, title, artist, -1, data, null);
+                x.uuid = uuid;
+                retval.add(x);
+                reader.endObject();
+            }
+            reader.endArray();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return retval;
+    }
+    public void saveSongs(ArrayList<Song> lists)
+    {
+        String filename = "savedSong.json";
+        try{
+            JsonWriter writer = new JsonWriter(new OutputStreamWriter(openFileOutput(filename, Context.MODE_PRIVATE)));
+            writer.beginArray();
+            for(Song song : lists)
+            {
+                writer.beginObject();
+                writer.name("title").value(song.title);
+                writer.name("artist").value(song.artist);
+                writer.name("data").value(song.data);
+                writer.name("id").value(song.id);
+                writer.name("uuid").value(song.uuid);
                 writer.endObject();
             }
             writer.endArray();

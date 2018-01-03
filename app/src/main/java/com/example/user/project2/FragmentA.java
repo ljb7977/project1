@@ -281,15 +281,21 @@ public class FragmentA extends Fragment {
             option = "POST";
             dest = url + "/contacts";
         }
-        JSONArray content = new JSONArray();
-        content.put(ob);
-        JSONObject head = new JSONObject();
-        try {
-            head.put("content", content);
-        } catch (JSONException e) {
-            return;
+        JSONObject head;
+        if(isNullId) {
+            JSONArray content = new JSONArray();
+            content.put(ob);
+            head = new JSONObject();
+            try {
+                head.put("content", content);
+            } catch (JSONException e) {
+                return;
+            }
         }
-        new HTTPJSONRequest(dest,option, head.toString()).setHandler(new HTTPJSONRequestHandler() {
+        else {
+            head = ob;
+        }
+            new HTTPJSONRequest(dest,option, head.toString()).setHandler(new HTTPJSONRequestHandler() {
             @Override
             public void on_response(JSONObject response) {
                 //Log.d("RES", response.toString());
