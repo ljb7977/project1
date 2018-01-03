@@ -22,14 +22,17 @@ public class HTTPJSONRequest {
     String url;
     String option;
     String data;
+    MyApplication app;
     HTTPJSONRequestHandler handler;
-    public HTTPJSONRequest(String url, String option)
+    public HTTPJSONRequest(MyApplication app, String url, String option)
     {
+        this.app = app;
         this.url = url;
         this.option = option;
     }
-    public HTTPJSONRequest(String url, String option, String data)
+    public HTTPJSONRequest(MyApplication app, String url, String option, String data)
     {
+        this.app = app;
         this.url = url;
         this.option = option;
         this.data = data;
@@ -52,6 +55,7 @@ public class HTTPJSONRequest {
                     con.setReadTimeout(10000);
                     con.setRequestMethod(option);
                     con.setRequestProperty("Content-Type", "application/json");
+                    con.setRequestProperty("Authorization", "Bearer " + app.id_token);
 
                     if (data != null) {
                         con.setDoOutput(true);

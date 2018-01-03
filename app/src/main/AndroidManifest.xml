@@ -52,6 +52,12 @@
                 <data android:host="login" android:scheme="app" android:path="/loginactivity"/>
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.example.user.project2.RegisterUser">
+        </activity>
+        <activity
+            android:name="com.example.user.project2.SignUpConfirm">
+        </activity>
 
     </application>
 </manifest>

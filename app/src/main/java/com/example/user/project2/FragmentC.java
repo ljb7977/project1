@@ -133,7 +133,7 @@ public class FragmentC extends Fragment {
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Song x = SongList.get(i);
                 if(x.uuid != null) {
-                    new HTTPJSONRequest(getString(R.string.server_url) + "/music/" + x.uuid, "DELETE").setHandler(new HTTPJSONRequestHandler() {
+                    new HTTPJSONRequest(MyApplication.getApplication(),getString(R.string.server_url) + "/music/" + x.uuid, "DELETE").setHandler(new HTTPJSONRequestHandler() {
                         @Override
                         public void on_response(JSONObject response) {
 
@@ -157,7 +157,7 @@ public class FragmentC extends Fragment {
 
     public void onSync()
     {
-        new HTTPJSONRequest(getString(R.string.server_url) + "/music" , "GET").setHandler(new HTTPJSONRequestHandler() {
+        new HTTPJSONRequest(MyApplication.getApplication(), getString(R.string.server_url) + "/music" , "GET").setHandler(new HTTPJSONRequestHandler() {
             @Override
             public void on_response(JSONObject response) { try {
                 ArrayList<Song> serverList = new ArrayList<>();
@@ -311,7 +311,7 @@ class SongUploadTask extends AsyncTask<Song, Integer, String> {
 
             String metadata_str = metadata.toString();
 
-            MultipartUtility multipart = new MultipartUtility(mContext.getString(R.string.url)+upload_url, "UTF-8");
+            MultipartUtility multipart = new MultipartUtility(MyApplication.getApplication(),mContext.getString(R.string.url)+upload_url, "UTF-8");
             multipart.addFormField("metadata", metadata_str);
             multipart.addFilePart(name, new File(path));
             /*
@@ -404,7 +404,7 @@ class MultipartUtility {
      * @param charset
      * @throws IOException
      */
-    public MultipartUtility(String requestURL, String charset)
+    public MultipartUtility(MyApplication app, String requestURL, String charset)
             throws IOException {
         this.charset = charset;
 
@@ -419,6 +419,8 @@ class MultipartUtility {
         httpConn.setDoInput(true);
         httpConn.setRequestProperty("Content-Type",
                 "multipart/form-data; boundary=" + boundary);
+        httpConn.setRequestProperty("Authorization", "Bearer " + app.id_token);
+
         httpConn.setRequestProperty("User-Agent", "CodeJava Agent");
         outputStream = httpConn.getOutputStream();
         writer = new PrintWriter(new OutputStreamWriter(outputStream, charset),

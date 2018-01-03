@@ -166,7 +166,7 @@ public class FragmentA extends Fragment {
             @Override
             public void onClick(View view) {
                 collapseButtons();
-                new HTTPJSONRequest("http://13.125.98.75:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
+                new HTTPJSONRequest(MyApplication.getApplication(), "http://13.125.98.75:3000/contacts","GET").setHandler(new HTTPJSONRequestHandler() {
                     @Override
                     public void on_response(JSONObject response) {
                         try {
@@ -295,7 +295,7 @@ public class FragmentA extends Fragment {
         else {
             head = ob;
         }
-            new HTTPJSONRequest(dest,option, head.toString()).setHandler(new HTTPJSONRequestHandler() {
+            new HTTPJSONRequest(MyApplication.getApplication(), dest,option, head.toString()).setHandler(new HTTPJSONRequestHandler() {
             @Override
             public void on_response(JSONObject response) {
                 //Log.d("RES", response.toString());
@@ -314,7 +314,7 @@ public class FragmentA extends Fragment {
         if(isNullId) return;
         String option = "DELETE";
         String url = getString(R.string.server_url) + "/contacts/" + m.id;
-        new HTTPJSONRequest(url,option).setHandler(new HTTPJSONRequestHandler() {
+        new HTTPJSONRequest(MyApplication.getApplication(), url,option).setHandler(new HTTPJSONRequestHandler() {
             @Override
             public void on_response(JSONObject response) {
                 //Log.d("RES", response.toString());
