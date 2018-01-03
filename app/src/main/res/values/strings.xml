@@ -10,11 +10,10 @@
     <string name="upload_button">Upload</string>
     <string name="url">http://13.125.98.75:3000</string>
 
-    <string name="cognito_web_domain">cs496-project-2.auth.us-east-2.amazoncognito.com</string>
-    <string name="cognito_client_id">3r8verin5ei14aqtkkm5avsh6p</string>
-    <string name="app_redirect_in">app://login/loginactivity</string>
-    <string name="app_redirect_out">app://login/loginactivity</string>
-    <!-- TODO app_redirect-->
+    <string name="cognito_client_id">2df1equkna1bbn3nqvurer3i6b</string>
+    <string name="cognito_client_secret">5c2a24nghafp450hthds4lr19ng8he8e90o5cr7lraimiubkph6</string>
+    <string name="pool_id">us-east-2_Kyv5EWOmi</string>
+    <string name="pool_arn">aws:cognito-idp:us-east-2:348040231908:userpool/us-east-2_Kyv5EWOmi</string>
 
     <string name="app_access_token">access_token</string>
     <string name="app_id_token">id_token</string>

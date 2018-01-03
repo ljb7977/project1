@@ -1,105 +1,108 @@
 package com.example.user.project2;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.amazonaws.mobileconnectors.cognitoauth.Auth;
-import com.amazonaws.mobileconnectors.cognitoauth.AuthUserSession;
-import com.amazonaws.mobileconnectors.cognitoauth.handlers.AuthHandler;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUser;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserSession;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationContinuation;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationDetails;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.ChallengeContinuation;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.MultiFactorAuthenticationContinuation;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler;
+import com.amazonaws.regions.Regions;
 
 public class LoginActivity extends Activity implements Button.OnClickListener{
 
-    private Auth auth;
-    private Uri appRedirect;
-    private AlertDialog userDialog;
+    private static CognitoUserPool userPool;
+    private static CognitoDevice device;
+    private final String TAG="LoginActivity";
+    private static CognitoUserSession userSession;
+
+    // User Details
+    private String username="hpthrd";  //TODO
+    private String password="Trx55555@@";
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        Auth.Builder builder = new Auth.Builder().setAppClientId(getString(R.string.cognito_client_id))
-                .setAppCognitoWebDomain(getString(R.string.cognito_web_domain))
-                .setApplicationContext(getApplicationContext())
-                .setAuthHandler(new callback())
-                .setSignInRedirect(getString(R.string.app_redirect_in))
-                .setSignOutRedirect(getString(R.string.app_redirect_out));
-        this.auth = builder.build();
-        appRedirect = Uri.parse(getString(R.string.app_redirect_in));
-
         Button login_button = findViewById(R.id.login_button);
         login_button.setOnClickListener(this);
 
-        //auth.signOut();
+        userPool = new CognitoUserPool(this,
+                getString(R.string.pool_id),
+                getString(R.string.cognito_client_id),
+                getString(R.string.cognito_client_secret),
+                Regions.US_EAST_2);
     }
-
-    /*
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Intent activityIntent = getIntent();
-        //  -- Call Auth.getTokens() to get Cognito JWT --
-        if (activityIntent.getData() != null &&
-                appRedirect.getHost().equals(activityIntent.getData().getHost())) {
-            auth.getTokens(activityIntent.getData());
-        }
-    }
-    */
 
     @Override
     public void onClick(View view) {
-        this.auth.getSession();
+        //showWaitDialog("Signing in...");
+        CognitoUser u = userPool.getUser(username); //.getSessionInBackground(authenticationHandler);
+        Log.i(TAG, u.getUserId());
+        u.getSessionInBackground(authenticationHandler);
     }
 
-    class callback implements AuthHandler {
+    private void launchUser(String token) {
+        MyApplication myApp = (MyApplication)getApplication();
+        myApp.id_token = token;
+        Log.i(TAG, "launch!");
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("name", username);
+        startActivityForResult(intent, 4);
+    }
+
+    // Sign in the user
+    AuthenticationHandler authenticationHandler = new AuthenticationHandler() {
 
         @Override
-        public void onSuccess(AuthUserSession authUserSession) {
-            // Show tokens for the authenticated user
+        public void onSuccess(CognitoUserSession cognitoUserSession, CognitoDevice newDevice) {
+            // Sign-in was successful, cognitoUserSession will contain tokens for the user
+            Log.d(TAG, " -- Auth Success");
+            userSession = cognitoUserSession;
+            device = newDevice;
 
-            MyApplication myApp = (MyApplication) getApplication();
-            myApp.id_token = authUserSession.getIdToken().getJWTToken();
-            Log.i("myapp IDTOKEN", myApp.id_token);
-
-            /*Intent i = new Intent(mContext, MainActivity.class);
-            startActivity(i);*/
+            String idToken = userSession.getIdToken().getJWTToken();
+            launchUser(idToken);
         }
 
         @Override
-        public void onSignout() {
-            // Back to new user screen.
-            //setNewUserFragment();
+        public void getAuthenticationDetails(AuthenticationContinuation authenticationContinuation, String userId) {
+            // The API needs user sign-in credentials to continue
+
+            AuthenticationDetails authenticationDetails = new AuthenticationDetails(username, password, null);
+            authenticationContinuation.setAuthenticationDetails(authenticationDetails);
+            authenticationContinuation.continueTask();
         }
 
         @Override
-        public void onFailure(Exception e) {
-            Log.i("error", e.getMessage());
-            showDialogMessage("error", e.getMessage());
+        public void getMFACode(MultiFactorAuthenticationContinuation multiFactorAuthenticationContinuation) {
+            /*
+            // Multi-factor authentication is required; get the verification code from user
+            multiFactorAuthenticationContinuation.setMfaCode(mfaVerificationCode);
+            // Allow the sign-in process to continue
+            multiFactorAuthenticationContinuation.continueTask();
+            */
         }
 
-    }
-    private void showDialogMessage(String title, String body) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title).setMessage(body).setNeutralButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                try {
-                    userDialog.dismiss();
-                } catch (Exception e) {
-                    // Log failure
-                    Log.e("Login","Dialog failure", e);
-                }
-            }
-        });
-        userDialog = builder.create();
-        userDialog.show();
-    }
+        @Override
+        public void authenticationChallenge(ChallengeContinuation continuation) {
+
+        }
+
+        @Override
+        public void onFailure(Exception exception) {
+            // Sign-in failed, check exception for the cause
+            Log.e(TAG, "Login Failure");
+        }
+    };
 }

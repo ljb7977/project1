@@ -259,8 +259,8 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 conn.setRequestMethod("GET");
                 conn.setRequestProperty("Authorization", "Bearer " + idToken);
 
-                Log.i("myapp IDTOKEN", MyApplication.getApplication().id_token);
-                Log.i("IDTOKEN", idToken);
+                //Log.i("myapp IDTOKEN", MyApplication.getApplication().id_token);
+                //Log.i("IDTOKEN", idToken);
 
                 conn.setRequestProperty("Accept", "application/json");
                 conn.setDoInput(true);

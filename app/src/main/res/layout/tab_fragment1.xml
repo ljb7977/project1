@@ -17,7 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/expand_button"
         android:layout_width="wrap_content"
