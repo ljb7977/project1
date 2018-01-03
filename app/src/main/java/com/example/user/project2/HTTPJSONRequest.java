@@ -70,7 +70,8 @@ public class HTTPJSONRequest {
                         off += read_len;
                         recv_byte -= read_len;
                     }
-
+                    x.close();
+                    con.getInputStream().close();
                     JSONObject jsonob = new JSONObject(new String(response));
                     return jsonob;
                 }

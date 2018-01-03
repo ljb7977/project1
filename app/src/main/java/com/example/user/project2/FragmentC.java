@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,11 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -77,6 +84,15 @@ public class FragmentC extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab_fragment3, container, false);
+
+        FloatingActionButton b = view.findViewById(R.id.musicSyncButton);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentC.this.onSync();
+            }
+        });
+
         MyApplication myApp = (MyApplication) getActivity().getApplication();
         SongList = myApp.getSongList();
 
@@ -85,7 +101,6 @@ public class FragmentC extends Fragment {
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id){
-                Song s = SongList.get(position);
                 Intent intent = new Intent(getActivity(), MusicPlayer.class);
                 intent.putExtra("position", position);
                 startActivity(intent);
@@ -93,5 +108,45 @@ public class FragmentC extends Fragment {
         });
 
         return view;
+    }
+
+    public void onSync()
+    {
+        new HTTPJSONRequest(getString(R.string.server_url) + "/music" , "GET").setHandler(new HTTPJSONRequestHandler() {
+            @Override
+            public void on_response(JSONObject response) { try {
+                ArrayList<Song> serverList = new ArrayList<>();
+                JSONArray f = response.getJSONArray("content");
+                int le = f.length();
+                for(int i = 0; i < le; i++)
+                {
+                    JSONObject fi = f.getJSONObject(i);
+                    if(fi != null)
+                    {
+                        String name = "";
+                        String number = "";
+                        String email = "";
+                        String uuid = "";
+                        if(fi.has("name"))
+                            name = fi.getString("name");
+                        if(fi.has("phone"))
+                            number = fi.getString("phone");
+                        if(fi.has("email"))
+                            email = fi.getString("email");
+                        if(fi.has("uuid"))
+                            uuid = fi.getString("uuid");
+                        Log.d("GETMUSIC","ASD");
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            }
+
+            @Override
+            public void on_fail() {
+                Log.d("OnSync", "Fail");
+            }
+        }).execAsync();
     }
 }
