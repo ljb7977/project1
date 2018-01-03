@@ -10,7 +10,6 @@ final class ImageDBColumn {
 
     public static class ImageEntry implements BaseColumns {
         public static final String TABLE_NAME = "IMAGES";
-        public static final String COLUMN_NAME_IMAGE_NAME = "NAME";
         public static final String COLUMN_NAME_IMAGEID = "IMAGEID";
         public static final String COLUMN_NAME_UUID = "UUID";
         public static final String COLUMN_NAME_CREATED_AT = "CREATED_AT";
@@ -29,9 +28,6 @@ public class DBHelper extends SQLiteOpenHelper {
                     ImageDBColumn.ImageEntry.COLUMN_NAME_UUID + " TEXT," +
                     ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT+ " TEXT," +
                     ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT+ " TEXT)";
-
-    private static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS " + ImageDBColumn.ImageEntry.TABLE_NAME;
 
     public DBHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

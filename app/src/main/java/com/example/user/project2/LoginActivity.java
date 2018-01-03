@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoDevice;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUser;
@@ -14,9 +16,13 @@ import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserSession
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.AuthenticationDetails;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.ChallengeContinuation;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.ChooseMfaContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.MultiFactorAuthenticationContinuation;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.continuations.NewPasswordContinuation;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.AuthenticationHandler;
 import com.amazonaws.regions.Regions;
+
+import java.util.List;
 
 public class LoginActivity extends Activity implements Button.OnClickListener{
 
@@ -28,6 +34,11 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
     // User Details
     private String username="hpthrd";  //TODO
     private String password="Trx55555@@";
+
+    public EditText inUsername;
+    public EditText inPassword;
+
+    private NewPasswordContinuation newPasswordContinuation;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -42,13 +53,42 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
                 getString(R.string.cognito_client_id),
                 getString(R.string.cognito_client_secret),
                 Regions.US_EAST_2);
+
+        inUsername = (EditText) findViewById(R.id.editTextUserId);
+        inPassword = (EditText) findViewById(R.id.editTextPassword);
+
+        /*Auto login
+        CognitoUser user = userPool.getCurrentUser();
+        username = user.getUserId();
+        if(username != null) {
+            inUsername.setText(user.getUserId());
+            user.getSessionInBackground(authenticationHandler);
+        }
+        */
     }
 
     @Override
     public void onClick(View view) {
         //showWaitDialog("Signing in...");
-        CognitoUser u = userPool.getUser(username); //.getSessionInBackground(authenticationHandler);
+        username = inUsername.getText().toString();
+        if(username == null || username.length() < 1) {
+            TextView label = (TextView) findViewById(R.id.textViewUserNameLabel);
+            label.setText("Username cannot be empty");
+            //inUsername.setBackground(Color("")); //TODO
+            return;
+        }
+
+        password = inPassword.getText().toString();
+        if(password == null || password.length() < 1) {
+            TextView label = (TextView) findViewById(R.id.textViewUserPasswordLabel);
+            label.setText("Password cannot be empty");
+            //inPassword.setBackground(getDrawable(R.drawable.text_border_error));//TODO
+            return;
+        }
+
+        CognitoUser u = userPool.getUser(username);
         Log.i(TAG, u.getUserId());
+        Log.i(TAG, password);
         u.getSessionInBackground(authenticationHandler);
     }
 
@@ -58,7 +98,8 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
         Log.i(TAG, "launch!");
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("name", username);
-        startActivityForResult(intent, 4);
+        startActivity(intent);
+        finish();
     }
 
     // Sign in the user
@@ -85,14 +126,7 @@ public class LoginActivity extends Activity implements Button.OnClickListener{
         }
 
         @Override
-        public void getMFACode(MultiFactorAuthenticationContinuation multiFactorAuthenticationContinuation) {
-            /*
-            // Multi-factor authentication is required; get the verification code from user
-            multiFactorAuthenticationContinuation.setMfaCode(mfaVerificationCode);
-            // Allow the sign-in process to continue
-            multiFactorAuthenticationContinuation.continueTask();
-            */
-        }
+        public void getMFACode(MultiFactorAuthenticationContinuation multiFactorAuthenticationContinuation) {}
 
         @Override
         public void authenticationChallenge(ChallengeContinuation continuation) {
