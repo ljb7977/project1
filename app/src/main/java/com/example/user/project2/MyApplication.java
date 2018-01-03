@@ -23,6 +23,8 @@ public class MyApplication extends Application {
 
     public SQLiteDatabase db;
 
+    public String id_token;
+
     public ArrayList<Photo> ImgList;
     public ArrayList<Song> SongList;
     public ArrayList<Contact> ContactList;

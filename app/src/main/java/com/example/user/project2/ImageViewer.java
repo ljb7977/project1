@@ -118,7 +118,7 @@ public class ImageViewer extends AppCompatActivity
                 return true;
             case R.id.action_upload_button:
                 Photo p = ((MyApplication) getApplication()).getImgList().get(index);
-                new ImageUploadTask(this).execute(p);
+                //new ImageUploadTask(this).execute(p);
             default:
                 return super.onOptionsItemSelected(item);
         }

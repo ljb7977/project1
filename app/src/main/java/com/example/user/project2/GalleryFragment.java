@@ -1,12 +1,12 @@
 package com.example.user.project2;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -32,11 +32,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -48,6 +51,8 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
     public SQLiteDatabase db;
 
     private Handler mHandler;
+
+    public String idToken;
 
     public class SquareImageView extends android.support.v7.widget.AppCompatImageView {
         public SquareImageView(Context context) {
@@ -115,6 +120,7 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
         MyApplication myApp = (MyApplication) getActivity().getApplication();
         ImgList = myApp.getImgList();
         db = myApp.db;
+        idToken = myApp.id_token;
 
         gridview.setAdapter(new GalleryFragment.ImageAdapter(getContext()));
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -220,7 +226,7 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
 
         for (Photo p : newImages){
             Log.i("NEWIMAGES", p.image);
-            new ImageUploadTask(getContext()).execute(p);
+            new ImageUploadTask().execute(p);
         }
 
         new ImageListFetchTask().execute();
@@ -243,28 +249,36 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
         }
 
         @Override
-        protected String doInBackground(String[]... ImgList_arg){
+        protected String doInBackground(String[]... ImgList_arg) {
             Log.i(TAG, "Start Fetching list...");
-            try{
-                URL url = new URL(getContext().getString(R.string.url)+url_str);
+            try {
+                URL url = new URL(getContext().getString(R.string.url) + url_str);
                 InputStream stream;
 
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
+                conn.setRequestProperty("Authorization", "Bearer " + idToken);
+
+                Log.i("myapp IDTOKEN", MyApplication.getApplication().id_token);
+                Log.i("IDTOKEN", idToken);
+
                 conn.setRequestProperty("Accept", "application/json");
                 conn.setDoInput(true);
                 conn.connect();
 
-                if(conn.getResponseCode() != HttpURLConnection.HTTP_OK)
+                if (conn.getResponseCode() != HttpURLConnection.HTTP_OK){
+                    Log.i(TAG, "rejected");
                     return null;
+                }
+
 
                 stream = conn.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                 StringBuilder stringBuilder = new StringBuilder();
                 String line;
 
-                while((line = reader.readLine()) != null)
-                    stringBuilder.append(line+"\n");
+                while ((line = reader.readLine()) != null)
+                    stringBuilder.append(line + "\n");
 
                 stream.close();
                 conn.disconnect();
@@ -284,7 +298,7 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
 
                 String selection = ImageDBColumn.ImageEntry.COLUMN_NAME_UUID + " = ? ";
 
-                for(int i=0; i<jArray.length(); i++){
+                for (int i = 0; i < jArray.length(); i++) {
                     JSONObject content = jArray.getJSONObject(i);
                     JSONObject metadata = content.getJSONObject("metadata");
                     PhotoFile f = new PhotoFile(
@@ -303,34 +317,36 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                             null
                     );
 
-                    if(cursor.getCount() == 0){ //need to fetch image from server
+                    if (cursor.getCount() == 0) { //need to fetch image from server
                         ImagesToFetch.add(f);
                     }
 
                     cursor.close();
                 }
 
-                for (PhotoFile file : ImagesToFetch){
+                for (PhotoFile file : ImagesToFetch) {
                     URL fileUrl = new URL(file.url);
-                    HttpURLConnection c = (HttpURLConnection)fileUrl.openConnection();
+                    HttpURLConnection c = (HttpURLConnection) fileUrl.openConnection();
                     c.setDoInput(true);
+                    c.setRequestProperty("Authorization", "Bearer " + idToken);
                     c.connect();
 
                     InputStream is = c.getInputStream();
                     String savePath = Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DCIM)+"/Camera/"+file.name;
+                            Environment.DIRECTORY_DCIM) + "/Camera/" + file.name;
                     FileOutputStream outputStream = new FileOutputStream(savePath);
                     Log.i("Image Download: ", savePath);
 
                     byte[] buffer = new byte[1024];
                     int len = 0;
-                    while((len=is.read(buffer))!=-1){
+                    while ((len = is.read(buffer)) != -1) {
                         outputStream.write(buffer, 0, len);
                     }
 
                     outputStream.flush();
                     outputStream.close();
                     is.close();
+                    c.disconnect();
 
                     uuid = file.uuid;
                     MediaScannerConnection.scanFile(
@@ -344,11 +360,6 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 e.printStackTrace();
             }
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s){
-            super.onPostExecute(s);
         }
 
         @Override
@@ -387,6 +398,112 @@ public class GalleryFragment extends Fragment implements View.OnClickListener {
                 }
             });
             c.close();
+        }
+    }
+
+    public class ImageUploadTask extends AsyncTask<Photo, Integer, String> {
+
+        public static final String TAG = "UploadTask";
+        public String upload_url = "/photos";
+
+        @Override
+        protected String doInBackground(Photo... p){
+            Log.i(TAG, "Start Upload");
+            try {
+                Photo photo = p[0];
+                String path = photo.image;
+                String name = path.substring(path.lastIndexOf("/") + 1);
+                String response = null;
+
+                JSONObject jsonObject = new JSONObject();
+                try{
+                    jsonObject.put("fileName", name);
+                    jsonObject.put("createdAt", photo.date_added);
+                    jsonObject.put("md5", "md5");
+                    jsonObject.put("name", name);
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }
+
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.put(jsonObject);
+
+                JSONObject metadata = new JSONObject();
+                try{
+                    metadata.put("metadata", jsonArray);
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }
+
+                String metadata_str = metadata.toString();
+
+                String boundary = "*=========*";
+
+                URL url = new URL(getActivity().getString(R.string.url)+upload_url);
+
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Authorization", "Bearer "+idToken);
+                conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+                conn.setDoOutput(true);
+
+                DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+                wr.writeBytes("\r\n--" + boundary + "\r\n");
+                wr.writeBytes("Content-Disposition: form-data; name=\"metadata\"\r\n\r\n" + metadata_str);
+
+                wr.writeBytes("\r\n--" + boundary + "\r\n");
+                wr.writeBytes("Content-Disposition: form-data; name=\""+name+"\"; filename=\""+name+"\"\r\n");
+                wr.writeBytes("Content-Type: image/jpeg\r\n\r\n");
+
+                Bitmap b = BitmapFactory.decodeFile(p[0].image, null);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                b.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[] imageBytes = baos.toByteArray();
+                wr.write(imageBytes);
+
+                wr.writeBytes("\r\n--" + boundary + "--\r\n");
+                wr.flush();
+
+                int responseCode = conn.getResponseCode();
+                if(responseCode == HttpURLConnection.HTTP_OK){
+                    InputStream is = conn.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line, uuid = null;
+
+                    while((line = reader.readLine()) != null){
+                        stringBuilder.append(line+"\n");
+                    }
+                    response = stringBuilder.toString();
+                    Log.i(TAG, response);
+
+                    try{
+                        JSONObject job = new JSONObject(response);
+                        JSONArray jArray = job.getJSONArray("result");
+                        uuid = jArray.getJSONObject(0).getString("uuid");
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                    }
+
+                    SQLiteDatabase db = new DBHelper(getActivity()).getWritableDatabase();
+                    ContentValues values = new ContentValues();
+                    values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_UUID, uuid);
+                    values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_IMAGEID, photo.id);
+                    values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_CREATED_AT, photo.date_added);
+                    values.put(ImageDBColumn.ImageEntry.COLUMN_NAME_MODIFIED_AT, photo.date_modified);
+                    db.insert(ImageDBColumn.ImageEntry.TABLE_NAME, null, values);
+
+                    is.close();
+                } else {
+                    Log.i(TAG, "upload fail");
+                }
+                conn.disconnect();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 }

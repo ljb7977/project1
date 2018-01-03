@@ -8,5 +8,14 @@
     <string name="delete_button">Delete</string>
     <string name="server_url">http://13.125.98.75:3000</string>
     <string name="upload_button">Upload</string>
-    <string name="url">"http://13.125.98.75:3000"</string>
+    <string name="url">http://13.125.98.75:3000</string>
+
+    <string name="cognito_web_domain">cs496-project-2.auth.us-east-2.amazoncognito.com</string>
+    <string name="cognito_client_id">3r8verin5ei14aqtkkm5avsh6p</string>
+    <string name="app_redirect_in">app://login/loginactivity</string>
+    <string name="app_redirect_out">app://login/loginactivity</string>
+    <!-- TODO app_redirect-->
+
+    <string name="app_access_token">access_token</string>
+    <string name="app_id_token">id_token</string>
 </resources>
