@@ -207,6 +207,7 @@ public class MusicPlayer extends AppCompatActivity {
                                         File outputDir = getCacheDir(); // context being the Activity pointer
                                         File outputFile = File.createTempFile("prefix", ".mp3", outputDir);
                                         URLConnection conection = url.openConnection();
+                                        conection.setRequestProperty("Authorization", "Bearer " + ((MyApplication)getApplication()).id_token);
                                         conection.connect();
 
                                         // this will be useful so that you can show a tipical 0-100%
@@ -214,7 +215,7 @@ public class MusicPlayer extends AppCompatActivity {
                                         int lenghtOfFile = conection.getContentLength();
 
                                         // download the file
-                                        InputStream input = new BufferedInputStream(url.openStream(),
+                                        InputStream input = new BufferedInputStream(conection.getInputStream(),
                                                 8192);
 
                                         // Output stream
