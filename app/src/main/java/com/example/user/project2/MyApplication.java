@@ -331,6 +331,7 @@ public class MyApplication extends Application {
                 String data = null;
                 String id = null;
                 String uuid = null;
+                String cache_data = null;
                 while(reader.hasNext())
                 {
                     String key = reader.nextName();
@@ -369,6 +370,13 @@ public class MyApplication extends Application {
                         else
                             reader.nextNull();
                     }
+                    else if(key.equals("cache_data"))
+                    {
+                        if(reader.peek() != JsonToken.NULL)
+                            cache_data = reader.nextString();
+                        else
+                            reader.nextNull();
+                    }
                     else
                     {
                         reader.skipValue();
@@ -376,6 +384,7 @@ public class MyApplication extends Application {
                 }
                 Song x = new Song(id, title, artist, -1, data, null);
                 x.uuid = uuid;
+                x.cache_data = cache_data;
                 retval.add(x);
                 reader.endObject();
             }
@@ -399,6 +408,7 @@ public class MyApplication extends Application {
                 writer.name("title").value(song.title);
                 writer.name("artist").value(song.artist);
                 writer.name("data").value(song.data);
+                writer.name("cache_data").value(song.cache_data);
                 writer.name("id").value(song.id);
                 writer.name("uuid").value(song.uuid);
                 writer.endObject();

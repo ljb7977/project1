@@ -184,71 +184,77 @@ public class MusicPlayer extends AppCompatActivity {
     public void preparesong(int position){
         Song song = songs.get(position);
         String path = song.data;
+        String cache_path = song.cache_data;
         String albumArtPath = song.albumCover;
         String title_name = song.title;
         String artist_name = song.artist;
         boolean islooping = mp.isLooping();
         mp.reset();
         try {
-            if(path.startsWith("http:"))
+            if(cache_path != null && new File(cache_path).isFile())
             {
-                URL url = new URL(path);
-                AsyncTask<URL, Void, String> f =
-                new AsyncTask<URL, Void, String>()
-                 {
-                    @Override
-                    protected String doInBackground(URL... urls) {
-                        try {
-                            URL url = urls[0];
-                            File outputDir = getCacheDir(); // context being the Activity pointer
-                            File outputFile = File.createTempFile("prefix", ".mp3", outputDir);
-                            URLConnection conection = url.openConnection();
-                            conection.connect();
-
-                            // this will be useful so that you can show a tipical 0-100%
-                            // progress bar
-                            int lenghtOfFile = conection.getContentLength();
-
-                            // download the file
-                            InputStream input = new BufferedInputStream(url.openStream(),
-                                    8192);
-
-                            // Output stream
-                            OutputStream output = new FileOutputStream(outputFile);
-
-                            byte data[] = new byte[1024];
-
-                            long total = 0;
-                            int count;
-                            while ((count = input.read(data)) != -1) {
-                                total += count;
-                                // writing data to file
-                                output.write(data, 0, count);
-                            }
-
-                            // flushing output
-                            output.flush();
-
-                            // closing streams
-                            output.close();
-                            input.close();
-                            return outputFile.getAbsolutePath();
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }
-
-                 };
-                f.execute(url);
-                mp.setDataSource(f.get());
+                mp.setDataSource(cache_path);
             }
             else {
-                mp.setDataSource(path);
+                if (path.startsWith("http:")) {
+                    URL url = new URL(path);
+                    AsyncTask<URL, Void, String> f =
+                            new AsyncTask<URL, Void, String>() {
+                                @Override
+                                protected String doInBackground(URL... urls) {
+                                    try {
+                                        URL url = urls[0];
+                                        File outputDir = getCacheDir(); // context being the Activity pointer
+                                        File outputFile = File.createTempFile("prefix", ".mp3", outputDir);
+                                        URLConnection conection = url.openConnection();
+                                        conection.connect();
+
+                                        // this will be useful so that you can show a tipical 0-100%
+                                        // progress bar
+                                        int lenghtOfFile = conection.getContentLength();
+
+                                        // download the file
+                                        InputStream input = new BufferedInputStream(url.openStream(),
+                                                8192);
+
+                                        // Output stream
+                                        OutputStream output = new FileOutputStream(outputFile);
+
+                                        byte data[] = new byte[1024];
+
+                                        long total = 0;
+                                        int count;
+                                        while ((count = input.read(data)) != -1) {
+                                            total += count;
+                                            // writing data to file
+                                            output.write(data, 0, count);
+                                        }
+
+                                        // flushing output
+                                        output.flush();
+
+                                        // closing streams
+                                        output.close();
+                                        input.close();
+                                        return outputFile.getAbsolutePath();
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                    } catch (MalformedURLException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return null;
+                                }
+
+                            };
+                    f.execute(url);
+                    song.cache_data = f.get();
+                    mp.setDataSource(song.cache_data);
+                    ((MyApplication) getApplication()).saveSongs(((MyApplication) getApplication()).getSongList());
+                } else {
+                    mp.setDataSource(path);
+                }
             }
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mp.prepare();
